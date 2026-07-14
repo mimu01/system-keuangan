@@ -1,0 +1,12 @@
+{
+  "name": "realtime-service",
+  "version": "1.0.0",
+  "description": "Realtime Socket.io service for Sistem Informasi Keuangan MI Miftahul Ulum 01",
+  "scripts": {
+    "dev": "bun --hot index.ts",
+    "start": "bun index.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.3"
+  }
+}

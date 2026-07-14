@@ -1,0 +1,255 @@
+// Sistem Informasi Keuangan MI MIFTAHUL ULUM 01
+// Database schema dengan soft delete, UUID, dan audit trail
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===================== ADMIN / USERS =====================
+model Admin {
+  id           String   @id @default(cuid())
+  nama         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN") // ADMIN | WALI_MURID
+  avatar       String?
+  noHp         String?
+  aktif        Boolean  @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  activityLogs ActivityLog[]
+  pembayaran   Pembayaran[]   @relation("PembayaranDiterimaOleh")
+  pengeluaran  Pengeluaran[]
+  notifikasi   Notifikasi[]   @relation("NotifikasiDibuatOleh")
+
+  @@map("admins")
+}
+
+// ===================== TAHUN AJARAN =====================
+model TahunAjaran {
+  id          String   @id @default(cuid())
+  nama        String   @unique // contoh: 2024/2025
+  tanggalMulai DateTime
+  tanggalSelesai DateTime
+  aktif       Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  kelas         Kelas[]
+  jenisPembayaran JenisPembayaran[]
+  tagihan       Tagihan[]
+  siswa         Siswa[]
+
+  @@map("tahun_ajaran")
+}
+
+// ===================== KELAS =====================
+model Kelas {
+  id          String   @id @default(cuid())
+  nama        String   // contoh: 1A, 2B, 3A
+  tingkat     Int      // 1-6
+  tahunAjaranId String
+  waliKelas   String?
+  kapasitas   Int      @default(30)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  siswa       Siswa[]
+
+  @@map("kelas")
+}
+
+// ===================== SISWA =====================
+model Siswa {
+  id            String   @id @default(cuid())
+  nis           String   @unique
+  nisn          String?
+  nama          String
+  jenisKelamin  String   // L | P
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String?
+  foto          String?
+  kelasId       String?
+  tahunAjaranId String?
+  status        String   @default("AKTIF") // AKTIF | LULUS | PINDAH | NONAKTIF
+  tanggalMasuk  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  kelas         Kelas?        @relation(fields: [kelasId], references: [id])
+  tahunAjaran   TahunAjaran?  @relation(fields: [tahunAjaranId], references: [id])
+  waliMurid     WaliMurid?
+  tagihan       Tagihan[]
+
+  @@map("siswa")
+}
+
+// ===================== WALI MURID =====================
+model WaliMurid {
+  id          String   @id @default(cuid())
+  nama        String
+  email       String   @unique
+  noHp        String?
+  alamat      String?
+  pekerjaan   String?
+  hubungan    String   @default("Orang Tua") // Orang Tua | Wali
+  foto        String?
+  siswaId     String   @unique
+  passwordHash String?
+  fcmToken    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  siswa       Siswa       @relation(fields: [siswaId], references: [id])
+  pembayaran  Pembayaran[]
+
+  @@map("wali_murid")
+}
+
+// ===================== JENIS PEMBAYARAN =====================
+model JenisPembayaran {
+  id            String   @id @default(cuid())
+  nama          String
+  deskripsi     String?
+  jumlah        Float
+  kategori      String   // SPP | PENGEMBANGAN | KEGIATAN | SERAGAM | BUKU | LAINNYA
+  frekuensi     String   @default("BULANAN") // BULANAN | TAHUNAN | SEKALI | SEMESTER
+  tahunAjaranId String?
+  aktif         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+  tagihan     Tagihan[]
+
+  @@map("jenis_pembayaran")
+}
+
+// ===================== TAGIHAN =====================
+model Tagihan {
+  id              String   @id @default(cuid())
+  siswaId         String
+  jenisPembayaranId String
+  tahunAjaranId   String
+  periode         String   // contoh: 2024-10 (untuk bulanan), 2024/2025 (untuk tahunan)
+  jumlah          Float
+  jumlahDibayar   Float    @default(0)
+  tanggalJatuhTempo DateTime
+  status          String   @default("BELUM_BAYAR") // BELUM_BAYAR | SEBAGIAN | LUNAS
+  keterangan      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  siswa           Siswa         @relation(fields: [siswaId], references: [id])
+  jenisPembayaran JenisPembayaran @relation(fields: [jenisPembayaranId], references: [id])
+  tahunAjaran     TahunAjaran   @relation(fields: [tahunAjaranId], references: [id])
+  pembayaran      Pembayaran[]
+
+  @@map("tagihan")
+}
+
+// ===================== PEMBAYARAN =====================
+model Pembayaran {
+  id            String   @id @default(cuid())
+  tagihanId     String
+  waliMuridId   String?
+  diterimaOleh  String?  // Admin id
+  jumlah        Float
+  metode        String   @default("TUNAI") // TUNAI | TRANSFER | QRISS | EWALLET
+  tanggalBayar  DateTime @default(now())
+  status        String   @default("BERHASIL") // PENDING | BERHASIL | GAGAL | DITOLAK
+  buktiPembayaran String?
+  keterangan    String?
+  kodeTransaksi String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  tagihan     Tagihan    @relation(fields: [tagihanId], references: [id])
+  waliMurid   WaliMurid? @relation(fields: [waliMuridId], references: [id])
+  admin       Admin?     @relation("PembayaranDiterimaOleh", fields: [diterimaOleh], references: [id])
+
+  @@map("pembayaran")
+}
+
+// ===================== PENGELUARAN =====================
+model Pengeluaran {
+  id          String   @id @default(cuid())
+  judul       String
+  deskripsi   String?
+  jumlah      Float
+  kategori    String   // OPERASIONAL | GAJI | PEMBELIAN | PEMELIHARAAN | LAINNYA
+  tanggal     DateTime @default(now())
+  dibuatOleh  String?
+  bukti       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  admin       Admin?   @relation(fields: [dibuatOleh], references: [id])
+
+  @@map("pengeluaran")
+}
+
+// ===================== NOTIFIKASI =====================
+model Notifikasi {
+  id          String   @id @default(cuid())
+  judul       String
+  pesan       String
+  tipe        String   // TAGIHAN_BARU | PEMBAYARAN_BERHASIL | PENGUMUMAN | JATUH_TEMPO
+  penerima    String   @default("SEMUA") // SEMUA | WALI_MURID | ADMIN | per-wali id
+  dibaca      Boolean  @default(false)
+  data        String?  // JSON string
+  dibuatOleh  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  admin       Admin?   @relation("NotifikasiDibuatOleh", fields: [dibuatOleh], references: [id])
+
+  @@map("notifikasi")
+}
+
+// ===================== ACTIVITY LOG =====================
+model ActivityLog {
+  id          String   @id @default(cuid())
+  adminId     String?
+  aksi        String   // CREATE | UPDATE | DELETE | LOGIN | LOGOUT
+  modul       String   // SISWA | PEMBAYARAN | dll
+  deskripsi   String
+  entitasId   String?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  admin       Admin?   @relation(fields: [adminId], references: [id])
+
+  @@map("activity_log")
+}
+
+// ===================== PENGATURAN =====================
+model Pengaturan {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  keterangan  String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("pengaturan")
+}
