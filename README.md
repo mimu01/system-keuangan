@@ -34,8 +34,8 @@ Aplikasi keuangan sekolah modern untuk MI Miftahul Ulum 01. Premium SaaS design 
 - **Animasi**: Framer Motion
 - **Form**: React Hook Form + Zod
 - **State**: TanStack Query + Zustand
-- **Database**: Prisma ORM (SQLite lokal untuk development)
-- **Realtime**: Socket.io (mini-service terpisah di port 3003)
+- **Database**: Prisma ORM + Supabase PostgreSQL
+- **Realtime**: Supabase Realtime (postgres_changes)
 - **Auth**: JWT cookie session + bcryptjs
 - **Icons**: Lucide React
 
@@ -47,16 +47,16 @@ bun install
 
 # Setup environment
 cp .env.example .env
-# Edit .env: DATABASE_URL=file:./db/custom.db dan JWT_SECRET=...
+# Edit .env: isi DATABASE_URL (Supabase), JWT_SECRET, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-# Push schema ke database
+# Push schema ke database Supabase
 bun run db:push
+
+# Enable Supabase Realtime (sekali saja)
+bun run prisma/enable-realtime.ts
 
 # Seed data demo
 bun run prisma/seed.ts
-
-# Jalankan realtime service (di terminal terpisah)
-cd mini-services/realtime-service && bun install && bun run dev
 
 # Jalankan aplikasi
 bun run dev
@@ -80,28 +80,38 @@ Di Vercel Dashboard → Settings → Environment Variables, tambahkan:
 
 | Key | Value | Keterangan |
 |-----|-------|------------|
-| `DATABASE_URL` | `file:./db/custom.db` | Path DB SQLite (lihat catatan di bawah) |
-| `JWT_SECRET` | `<random-string-32-char>` | Secret untuk JWT session |
+| `DATABASE_URL` | `postgresql://postgres.[REF]:[PASS]@aws-0-[REGION].pooler.supabase.com:5432/postgres` | Connection string Supabase (session pooler, port 5432) |
+| `JWT_SECRET` | `<random-string-32-char>` | Secret untuk JWT session (generate: `openssl rand -base64 32`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://[REF].supabase.co` | URL project Supabase (untuk Realtime) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGci...` | Anon public key dari Supabase Dashboard > Settings > API |
 
-> **Catatan penting tentang database:** Aplikasi ini menggunakan Prisma + SQLite untuk development. Vercel serverless memiliki filesystem ephemeral, sehingga SQLite **tidak persisten** di Vercel. Untuk production, disarankan migrasi ke PostgreSQL/MySQL (Supabase, Neon, PlanetScale, dll). Cukup ubah `provider` di `prisma/schema.prisma` dan `DATABASE_URL`. Struktur schema sudah mendukung migrasi tanpa perubahan model.
+> **Ambil Supabase URL & Anon Key:** Dashboard Supabase → Settings → API → Project URL & Project API keys (anon public).
 
-### 2. Import dari GitHub
+### 2. Pastikan Database Sudah Dimigrasi
+
+Database Supabase sudah berisi semua tabel + data demo (sudah di-migrate & seed). Jika perlu ulang:
+
+```bash
+bun run db:push          # buat tabel
+bun run prisma/enable-realtime.ts  # aktifkan realtime
+bun run prisma/seed.ts   # isi data demo
+```
+
+### 3. Import dari GitHub
 
 1. Buka [vercel.com/new](https://vercel.com/new)
-2. Import repository `mimu01/sik-mi-miftahul-ulum-01`
+2. Import repository `mimu01/system-keuangan`
 3. Framework Preset: **Next.js** (terdeteksi otomatis)
-4. Root Directory: `./` (default)
-5. Build Command: `next build` (default)
-6. Install Command: `bun install` (atau `npm install`)
-7. Klik **Deploy**
+4. Install Command: `bun install` (atau `npm install`)
+5. Klik **Deploy**
 
-### 3. Post-Deploy
+### 4. Post-Deploy
 
-- Set environment variables (lihat langkah 1)
-- Jalankan Prisma migrate/db push pada build: tambahkan `bun run db:push` ke build command jika perlu, atau gunakan Vercel Post-build hook
-- Redeploy setelah konfigurasi
+- Set semua 4 environment variables di atas
+- Redeploy agar env variables terbaca
+- Akses `/admin` untuk login (admin@miftahululum01.sch.id / admin123)
 
-### 4. Konversi ke Android TWA (Bubblewrap)
+### 5. Konversi ke Android TWA (Bubblewrap)
 
 ```bash
 # Install Bubblewrap CLI

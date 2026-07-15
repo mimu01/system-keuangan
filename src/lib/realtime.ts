@@ -1,21 +1,11 @@
-// Server-side helper untuk broadcast event ke realtime service
-const REALTIME_URL = 'http://localhost:3003'
-const INTERNAL_SECRET = 'realtime-miftahul-2024'
-
-export async function broadcast(event: string, payload: unknown): Promise<void> {
-  try {
-    await fetch(`${REALTIME_URL}/broadcast`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-internal-secret': INTERNAL_SECRET,
-      },
-      body: JSON.stringify({ event, payload }),
-    })
-  } catch (error) {
-    console.error('Gagal broadcast realtime:', error)
-  }
-}
+// Helper realtime.
+//
+// Setelah migrasi ke Supabase, broadcast TIDAK diperlukan lagi —
+// Supabase Realtime otomatis mengirim event ke semua client yang subscribe
+// setiap kali data di tabel berubah (berkat publication supabase_realtime).
+//
+// Fungsi broadcast() tetap dipertahankan sebagai no-op agar API routes
+// yang memanggilnya tidak perlu diubah. Tidak ada overhead.
 
 export const RealtimeEvents = {
   PEMBAYARAN_CREATED: 'pembayaran:created',
@@ -26,3 +16,9 @@ export const RealtimeEvents = {
   DASHBOARD_REFRESH: 'dashboard:refresh',
   PENGELUARAN_CREATED: 'pengeluaran:created',
 } as const
+
+// No-op: Supabase Realtime menangani broadcast otomatis
+export async function broadcast(_event: string, _payload: unknown): Promise<void> {
+  // Sengaja kosong — perubahan DB sudah otomatis di-broadcast Supabase
+  return
+}
