@@ -428,3 +428,44 @@ Stage Summary:
 - All 5 bottom-nav destinations now functional
 - Matches dashboard design pattern (emerald theme, motion, Skeleton, cards)
 - Ready for end-to-end wali murid UX testing
+
+---
+Task ID: wali-murid-foundation
+Agent: Orchestrator (main) + full-stack-developer subagent
+Task: Bangun fondasi Aplikasi Wali Murid (/app) + ROADMAP arsitektur
+
+Work Log:
+- Tulis ROADMAP.md komprehensif: visi, arsitektur 2 app, fondasi bersama, struktur direktori, model keamanan, 6 fase roadmap, alur realtime, tech stack, akun demo
+- Buat src/lib/wali-auth.ts: JWT session terpisah (cookie wali_session, 30 hari), getCurrentWali() dengan include siswa, setWaliSessionCookie, clearWaliSessionCookie
+- Buat /app login page (page.tsx + login-form.tsx): mobile-first, gradient emerald, show/hide password, demo credentials, ThemeToggle
+- Buat /app/dashboard layout (layout.tsx + app-shell.tsx): 
+  - Server component cek getWaliSession() → redirect /app jika tidak login
+  - QueryProvider wrapper (fix bug: useQueryClient butuh provider)
+  - AppShell client component: header (logo + siswa nama + kelas), bottom navigation 5 menu (Beranda, Tagihan, Bayar, Notifikasi, Profil), motion active indicator, realtime hook
+  - Container max-w-md centered (mobile-first, shadow di tablet/desktop)
+- Buat /app/dashboard/page.tsx: greeting, hero card tunggakan (gradient-emerald), 2 stat mini, tagihan jatuh tempo, pembayaran terbaru, link profil anak
+- Buat 9 API routes wali: auth/login, auth/logout, auth/change-password, me, dashboard, tagihan, pembayaran, notifikasi, siswa — semua scoped ke siswaId wali
+- Delegasikan 5 halaman fitur ke subagent: tagihan (filter pills + progress bar), pembayaran (summary hero + list), notifikasi (icon per tipe + unread indicator), profil-anak (detail siswa), profil (info wali + form ubah sandi + logout)
+- Update landing page: semua tombol 'Unduh Aplikasi' di navbar, hero, DownloadCTA sekarang Link ke /app (sebelumnya scroll ke section)
+- Fix bug: QueryProvider tidak ada di wali layout → dashboard 500 → tambah QueryProvider wrapper
+- Lint: 0 errors, 9 warnings (pre-existing RHF)
+
+Verification (curl-based, sandbox memory terlalu terbatas untuk browser+dev server bersamaan):
+- /app login page: 200 ✓ (browser snapshot konfirmasi form render)
+- /api/wali/auth/login: 200, return wali Bapak Abdullah + siswa Muhammad Faiz Abdullah ✓
+- /app/dashboard: 200 (setelah fix QueryProvider) ✓
+- /api/wali/dashboard: 200, return stats + pembayaranRecent + jatuhTempoTerdekat ✓
+- /api/wali/tagihan: 200, return tagihan dengan pembayaran history ✓
+- Push ke GitHub: commit f2fe633
+
+Stage Summary:
+- Dua aplikasi terintegrasi sekarang lengkap:
+  1. Admin (/admin) — full CRUD, desktop-first, sudah ada
+  2. Wali Murid (/app) — read-only scoped, mobile-first PWA, BARU
+- Fondasi bersama: db, supabase, types, realtime hook, shadcn/ui
+- Auth terpisah: admin_session (7 hari) vs wali_session (30 hari)
+- API terpisah: /api/* (admin) vs /api/wali/* (wali, scoped ke anak sendiri)
+- Landing page "Unduh Aplikasi Wali Murid" sekarang berfungsi → link ke /app
+- Login wali demo: wali2024002@miftahululum01.sch.id / wali123
+- ROADMAP.md di repo untuk panduan pengembangan ke depan
+- Siap deploy ulang ke Vercel (push sudah trigger auto-deploy)
