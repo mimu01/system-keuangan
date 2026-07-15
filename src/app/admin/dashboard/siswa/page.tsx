@@ -206,7 +206,7 @@ export default function SiswaPage() {
         filters={
           <>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -217,7 +217,7 @@ export default function SiswaPage() {
               </SelectContent>
             </Select>
             <Select value={kelasFilter} onValueChange={setKelasFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Kelas" />
               </SelectTrigger>
               <SelectContent>
@@ -230,7 +230,7 @@ export default function SiswaPage() {
           </>
         }
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -315,6 +315,65 @@ export default function SiswaPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-20 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data.map((siswa: any, i: number) => (
+              <motion.div
+                key={siswa.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+              >
+                <Card className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate font-semibold">{siswa.nama}</p>
+                        <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          {siswa.jenisKelamin}
+                        </span>
+                      </div>
+                      <p className="font-mono text-xs text-muted-foreground">NIS: {siswa.nis}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {siswa.kelas?.nama ?? "-"} · {siswa.tahunAjaran?.nama ?? "-"}
+                      </p>
+                      <StatusBadge value={siswa.status} label={LABEL_STATUS_SISWA[siswa.status as keyof typeof LABEL_STATUS_SISWA]} />
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(siswa)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <ConfirmDelete
+                        onConfirm={() => deleteMutation.mutate(siswa.id)}
+                        description={`Hapus siswa ${siswa.nama}? Tindakan ini tidak dapat dibatalkan.`}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<Users className="size-6" />}
+                title="Belum ada data siswa"
+                description="Tambahkan siswa pertama Anda untuk memulai"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Tambah Siswa
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -93,12 +93,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
             Selamat Datang, Admin 👋
           </h1>
-          <p className="text-sm text-muted-foreground sm:text-base">
+          <p className="text-sm text-muted-foreground">
             Ringkasan keuangan MI Miftahul Ulum 01 hari ini.
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
           <Button asChild variant="outline" size="sm">
             <Link href="/admin/dashboard/pembayaran">
               <Plus className="mr-1.5 size-4" />
-              Tambah Pembayaran
+              Pembayaran
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm">
@@ -118,14 +118,14 @@ export default function DashboardPage() {
           <Button asChild size="sm" className="gradient-emerald text-white">
             <Link href="/admin/dashboard/pengeluaran">
               <Plus className="mr-1.5 size-4" />
-              Tambah Pengeluaran
+              Pengeluaran
             </Link>
           </Button>
         </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-36 rounded-xl" />
@@ -170,8 +170,8 @@ export default function DashboardPage() {
 
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-5">
-        <Card className="p-5 lg:col-span-3">
-          <div className="mb-4 flex items-center justify-between">
+        <Card className="p-4 sm:p-5 lg:col-span-3">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-base font-semibold">Arus Keuangan</h3>
               <p className="text-xs text-muted-foreground">6 bulan terakhir</p>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
               </span>
             </div>
           </div>
-          <div className="h-72 w-full">
+          <div className="h-56 w-full sm:h-72">
             {isLoading ? (
               <Skeleton className="h-full w-full" />
             ) : (
@@ -248,7 +248,7 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card className="p-5 lg:col-span-2">
+        <Card className="p-4 sm:p-5 lg:col-span-2">
           <div className="mb-4">
             <h3 className="text-base font-semibold">Status Tagihan</h3>
             <p className="text-xs text-muted-foreground">
@@ -256,9 +256,9 @@ export default function DashboardPage() {
             </p>
           </div>
           {isLoading ? (
-            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-60 w-full sm:h-72" />
           ) : (
-            <div className="relative h-60">
+            <div className="relative h-48 sm:h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -314,7 +314,7 @@ export default function DashboardPage() {
 
       {/* Recent Payments */}
       <Card className="overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border p-5">
+        <div className="flex items-center justify-between gap-2 border-b border-border p-4 sm:p-5">
           <div className="flex items-center gap-2">
             <Activity className="size-5 text-primary" />
             <div>
@@ -326,7 +326,8 @@ export default function DashboardPage() {
             <Link href="/admin/dashboard/pembayaran">Lihat Semua</Link>
           </Button>
         </div>
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="hidden overflow-x-auto md:block">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -381,6 +382,36 @@ export default function DashboardPage() {
               )}
             </TableBody>
           </Table>
+        </div>
+        {/* Mobile cards */}
+        <div className="divide-y divide-border md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4">
+                <Skeleton className="h-14 w-full" />
+              </div>
+            ))
+          ) : data?.pembayaranRecent && data.pembayaranRecent.length > 0 ? (
+            data.pembayaranRecent.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3 p-4">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{p.siswa?.nama ?? "-"}</p>
+                  <p className="font-mono text-xs text-muted-foreground">{p.kodeTransaksi}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {LABEL_METODE[p.metode as keyof typeof LABEL_METODE] ?? p.metode} · {formatTanggalSingkat(p.tanggalBayar)}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="font-semibold">{formatRupiah(p.jumlah)}</span>
+                  <StatusBadge value={p.status} />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              Belum ada pembayaran
+            </div>
+          )}
         </div>
       </Card>
     </div>

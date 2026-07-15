@@ -187,7 +187,7 @@ export default function JenisPembayaranPage() {
         searchPlaceholder="Cari nama jenis pembayaran..."
         filters={
           <Select value={kategoriFilter} onValueChange={setKategoriFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent>
@@ -199,7 +199,7 @@ export default function JenisPembayaranPage() {
           </Select>
         }
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -285,6 +285,67 @@ export default function JenisPembayaranPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-24 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data.map((j: any, i: number) => (
+              <motion.div
+                key={j.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+              >
+                <Card className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate font-semibold">{j.nama}</p>
+                      {j.deskripsi && (
+                        <p className="line-clamp-1 text-xs text-muted-foreground">{j.deskripsi}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                          {LABEL_KATEGORI[j.kategori as keyof typeof LABEL_KATEGORI] ?? j.kategori}
+                        </span>
+                        <span className="text-xs text-muted-foreground">·</span>
+                        <span className="text-xs">{LABEL_FREKUENSI[j.frekuensi as keyof typeof LABEL_FREKUENSI] ?? j.frekuensi}</span>
+                      </div>
+                      <p className="text-base font-bold text-foreground">{formatRupiah(j.jumlah)}</p>
+                      <StatusBadge value={String(j.aktif)} label={j.aktif ? "Aktif" : "Nonaktif"} />
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(j)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <ConfirmDelete
+                        onConfirm={() => deleteMutation.mutate(j.id)}
+                        description={`Hapus jenis pembayaran ${j.nama}?`}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<Tags className="size-6" />}
+                title="Belum ada jenis pembayaran"
+                description="Tambahkan jenis pembayaran pertama Anda"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Tambah Jenis
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       <Dialog open={open} onOpenChange={setOpen}>

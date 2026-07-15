@@ -152,7 +152,7 @@ export default function TahunAjaranPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Cari nama tahun ajaran..."
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -229,6 +229,68 @@ export default function TahunAjaranPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-24 w-full" /></Card>
+            ))
+          ) : filteredData.length ? (
+            filteredData.map((t: any, i: number) => (
+              <motion.div
+                key={t.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Card className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate font-semibold">{t.nama}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatTanggal(t.tanggalMulai)} → {formatTanggal(t.tanggalSelesai)}
+                      </p>
+                      {t.aktif ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="size-3" />
+                          Aktif
+                        </span>
+                      ) : (
+                        <span className="inline-flex rounded-full bg-zinc-500/10 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                          Nonaktif
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(t)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <ConfirmDelete
+                        onConfirm={() => deleteMutation.mutate(t.id)}
+                        description={`Hapus tahun ajaran ${t.nama}?`}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<CalendarDays className="size-6" />}
+                title="Belum ada tahun ajaran"
+                description="Tambahkan tahun ajaran pertama Anda"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Tambah Tahun Ajaran
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       <Dialog open={open} onOpenChange={setOpen}>

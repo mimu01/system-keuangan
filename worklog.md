@@ -214,3 +214,99 @@ Stage Summary:
 - Realtime socket.io service running on port 3003.
 - App is PWA-ready (manifest + icons + service worker manifest).
 - Login: admin@miftahululum01.sch.id / admin123
+
+---
+Task ID: mobile-responsive-tables
+Agent: Frontend Styling Expert
+Task: Make admin feature tables fully mobile-responsive (dual-view: desktop table + mobile cards) + fix fixed-width filters + verify dialogs are scrollable
+
+Work Log:
+- Read worklog.md (Task 1 = foundation, Task 7 = realtime service, Task 3-4-5-6-8 = admin system, Task 2 = landing page) — understood existing work.
+- Studied the responsive patterns already established in:
+  * /admin/dashboard/page.tsx (Recent Payments section uses dual-view: `hidden md:block` table + `md:hidden` card list with `divide-y` — THIS is the canonical pattern replicated)
+  * data-table-shell.tsx (search full-width on top; filters + actions wrap below in flex-col on mobile, flex-row on sm+)
+  * page-header.tsx (flex-col on mobile, flex-row with shrink-0 actions on sm+)
+  * stat-card.tsx (responsive padding, size-10 sm:size-11 icon)
+  * status-badge.tsx (already supports AKTIF/LUNAS/etc. colorMap including "true"/"false" for boolean aktif)
+  * empty-state.tsx (motion + dashed border + centered content)
+- Read lib/types.ts for label maps: LABEL_STATUS_SISWA, LABEL_METODE, LABEL_STATUS_TAGIHAN, LABEL_STATUS_PEMBAYARAN, LABEL_KATEGORI, LABEL_FREKUENSI, LABEL_TIPE_NOTIFIKASI + formatRupiah, formatTanggalSingkat, formatTanggal, formatTanggalWaktu.
+- Updated ALL 11 admin feature pages in /src/app/admin/dashboard/*:
+
+  1. **siswa/page.tsx** — Wrapped existing `<Card className="overflow-hidden">` table with `hidden md:block`; added mobile card list (`md:hidden`) showing Nama (bold) + L/P badge, NIS (mono), Kelas · Tahun Ajaran, StatusBadge (AKTIF/LULUS/PINDAH/NONAKTIF), and Edit/Delete buttons on right. Fixed 2 filters: status `w-[150px]` → `w-full sm:w-[150px]`, kelas `w-[150px]` → `w-full sm:w-[150px]`. Dialog `sm:max-w-2xl` already has `max-h-[90vh] overflow-y-auto` — left as-is.
+
+  2. **wali-murid/page.tsx** — Wrapped table Card with `hidden md:block`; added mobile cards showing Nama (bold), Email (muted), HP, Hubungan badge + Siswa name, Edit/Delete on right. No fixed-width filters to fix (uses DataTableShell search only). Dialog already responsive.
+
+  3. **kelas/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Nama (bold) + Tingkat badge, Wali Kelas, Tahun Ajaran, Users icon + count/capacity, Edit/Delete. Fixed filter: tahun ajaran `w-[180px]` → `w-full sm:w-[180px]`. Dialog `sm:max-w-lg` left as-is.
+
+  4. **jenis-pembayaran/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Nama (bold) + deskripsi, Kategori badge + Frekuensi, Jumlah (bold formatRupiah), Aktif/Nonaktif StatusBadge, Edit/Delete. Fixed filter: kategori `w-[180px]` → `w-full sm:w-[180px]`. Dialog already responsive (uses Switch for aktif).
+
+  5. **tagihan/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Siswa (bold) + NIS, Jenis · Periode, Progress bar with % + formatRupiah(jumlahDibayar)/formatRupiah(jumlah), Jatuh tempo + StatusBadge, Edit/Delete. Fixed filter: status `w-[180px]` → `w-full sm:w-[180px]`. Empty-state mobile fallback uses flex-wrap for the 2 action buttons. Create/Edit & Generate Massal dialogs left untouched (both already `max-h-[90vh] overflow-y-auto`).
+
+  6. **pembayaran/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Siswa (bold), Kode Transaksi (mono), Jenis · Metode · Tanggal (single line muted), Jumlah (bold) + StatusBadge on right, then Detail + Delete buttons row below. Fixed ALL 4 filters: status `w-[140px]` → `w-full sm:w-[140px]`, metode `w-[140px]` → `w-full sm:w-[140px]`, from `w-[150px]` → `w-full sm:w-[150px]`, to `w-[150px]` → `w-full sm:w-[150px]`. Create Dialog `sm:max-w-lg` and Detail Dialog `sm:max-w-md` left as-is (both already scrollable on mobile).
+
+  7. **pengeluaran/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Judul (bold) + deskripsi, Kategori badge (rose) · Tanggal, Jumlah (bold rose), Edit/Delete. Total Pengeluaran summary Card left visible on both mobile + desktop (it's compact). Fixed 3 filters: kategori `w-[180px]` → `w-full sm:w-[180px]`, from `w-[150px]` → `w-full sm:w-[150px]`, to `w-[150px]` → `w-full sm:w-[150px]`. Dialog left as-is.
+
+  8. **laporan/page.tsx** — Wrapped transactions table Card with `hidden md:block`; mobile cards show Tipe badge (emerald Pemasukan / rose Pengeluaran) + Tanggal, Deskripsi (medium), Kategori + optional Ref/Siswa, Jumlah (colored bold, +/- prefix). Date filter inputs are already inside a `grid sm:grid-cols-2 lg:grid-cols-4` (no fixed width) — left as-is (stacks naturally on mobile). Export buttons already wrap via PageHeader's `flex flex-wrap gap-2`. EmptyState mobile fallback added.
+
+  9. **tahun-ajaran/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Nama (bold), Mulai → Selesai date range, Aktif/Nonaktif badge (with CheckCircle2 icon when aktif), Edit/Delete. No fixed-width filters (uses DataTableShell search only). Dialog `sm:max-w-md` left as-is.
+
+  10. **notifikasi/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Judul (bold) + pesan (line-clamp-1), Tipe badge + Penerima badge, Tanggal (formatTanggalWaktu), Delete button. Fixed filter: tipe `w-[180px]` → `w-full sm:w-[180px]`. Search filter applied client-side on mobile list (matches desktop behavior). Dialog left as-is.
+
+  11. **activity-log/page.tsx** — Wrapped table Card with `hidden md:block`; mobile cards show Deskripsi (medium) + Aksi badge (color-coded by action using existing AKSI_COLOR map — emerald CREATE, amber UPDATE, rose DELETE, blue LOGIN, zinc LOGOUT — kept consistent with desktop rather than overriding with the spec's colors), Admin name + Modul badge, Waktu (formatTanggalWaktu) + IP (mono). Fixed 2 filters: modul `w-[180px]` → `w-full sm:w-[180px]`, aksi `w-[150px]` → `w-full sm:w-[150px]`. EmptyState mobile fallback added.
+
+- Pattern consistency verified across all pages:
+  * Desktop table wrapper: `<Card className="overflow-hidden hidden md:block">` + inner `<div className="overflow-x-auto">`
+  * Mobile list wrapper: `<div className="space-y-3 md:hidden">` with skeleton loading (`Array.from({length: 4-6}).map(Skeleton h-20 to h-28)`) + `motion.div` cards with `initial={{opacity:0, y:8}} animate={{opacity:1, y:0}} transition={{delay: i*0.02-0.03}}` + EmptyState fallback wrapped in `<Card className="p-8">`
+  * Mobile card internal layout: `flex items-start justify-between gap-3` with main info on left (`min-w-0 flex-1 space-y-1`) and action buttons on right (`flex shrink-0 items-center gap-1`)
+  * All Indonesian text preserved (no English leaked in)
+  * All existing imports reused (Card, Button, StatusBadge, ConfirmDelete, EmptyState, Skeleton, motion, formatRupiah, formatTanggalSingkat, formatTanggalWaktu, LABEL_* maps) — no new imports needed
+
+- Filter fix pattern applied uniformly: any `className="w-[XXXpx]"` on SelectTrigger or Input → `className="w-full sm:w-[XXXpx]"`. The DataTableShell already wraps filters in `flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center`, so the filters now stack full-width vertically on mobile and sit in a row on sm+.
+
+- Dialog forms: verified all create/edit dialogs already use `max-h-[90vh] overflow-y-auto` and `sm:max-w-lg` / `sm:max-w-2xl` / `sm:max-w-md` — these are already mobile-friendly (default shadcn dialog auto-fits on mobile via `w-full max-w-[calc(100%-1rem)]`). Form grids use `grid gap-4 sm:grid-cols-2` (1 col mobile, 2 cols sm+) — already responsive. NO changes to form fields per task instructions.
+
+Verification:
+- `bun run lint`: 11 problems (2 errors, 9 warnings) — IDENTICAL to pre-existing state (verified by stashing changes and re-running). The 2 errors are pre-existing in `src/hooks/use-realtime.ts` (Cannot access refs during render). The 9 warnings are pre-existing React Hook Form `watch()` React Compiler incompatibility warnings (documented limitation in prior worklog). I introduced 0 new lint errors/warnings.
+- `bunx tsc --noEmit`: 25 errors, IDENTICAL to pre-existing state (verified by stashing). All 25 are pre-existing Zod `Resolver` type-mismatch issues from `z.coerce.number()` (inferring `unknown` as input type) + a couple of unrelated prisma/seed.ts and skills/* issues. I introduced 0 new TypeScript errors.
+
+Stage Summary:
+- All 11 admin feature pages (siswa, wali-murid, kelas, jenis-pembayaran, tagihan, pembayaran, pengeluaran, laporan, tahun-ajaran, notifikasi, activity-log) are now FULLY mobile-responsive.
+- Each page renders as a normal `<Table>` on desktop (md+ screens) and as stacked framer-motion animated `<Card>` list on mobile (< md screens).
+- All fixed-width filter inputs/selects converted to `w-full sm:w-[XXXpx]` so they stack vertically full-width on mobile and sit in a row on desktop.
+- The dual-view pattern matches the existing /admin/dashboard recent-payments section exactly, preserving visual consistency across the app.
+- All dialogs verified to be scrollable on mobile (no overflow / no horizontal scroll needed).
+- EmptyState component reused for mobile empty list fallback (wrapped in a Card).
+- All mutations, queries, form logic, and existing functionality preserved — only the list/table display and filter widths changed.
+- All text remains in Bahasa Indonesia.
+- 0 new lint or TypeScript errors introduced.
+
+---
+Task ID: mobile-responsive
+Agent: Orchestrator (main) + frontend-styling-expert subagent
+Task: Make entire app fully mobile-responsive (admin dashboard + landing)
+
+Work Log:
+- Audited current state with Agent Browser on iPhone 14 (390x844) viewport
+- Updated shared components:
+  - data-table-shell.tsx: search bar full-width on top, filters stack vertically (flex-col) on mobile / row on desktop
+  - page-header.tsx: title text-xl on mobile (sm:text-2xl lg:text-3xl), min-w-0 truncation, actions shrink-0 on desktop
+  - stat-card.tsx: p-4 on mobile (sm:p-5), text-xl value (sm:text-2xl lg:text-3xl), size-10 icon (sm:size-11)
+- Updated dashboard-shell.tsx: header h-14 px-3 on mobile (sm:h-16 sm:px-6), sidebar Sheet w-[85vw] max-w-xs, page content p-3 (sm:p-6 lg:p-8), avatar text hidden below md
+- Updated dashboard/page.tsx: stat cards grid-cols-2 on mobile (xl:grid-cols-4), charts p-4 + h-56 (sm:h-72), recent payments dual-view (hidden md:block table + md:hidden mobile cards)
+- Updated pengaturan/page.tsx: cards p-4 sm:p-6, grid gap-4 lg:gap-6
+- Fixed use-realtime.ts: use onEventRef to avoid stale callback + ref-during-render issue, return only isConnected
+- Launched frontend-styling-expert subagent which converted ALL 11 feature pages (siswa, wali-murid, kelas, jenis-pembayaran, tagihan, pembayaran, pengeluaran, laporan, tahun-ajaran, notifikasi, activity-log) to dual-view: desktop table (hidden md:block) + mobile card list (md:hidden). Fixed all fixed-width filters w-[XXXpx] → w-full sm:w-[XXXpx].
+
+Verification (Agent Browser @ 390x844 iPhone):
+- Dashboard: stat cards 2-col grid, charts render, recent payments show as mobile cards (siswa nama, kode transaksi, metode·tanggal, jumlah+badge) ✓
+- Data Siswa: mobile cards (Nama, L/P, NIS, Kelas·Tahun Ajaran, Status badge), 2 filters full-width 366px ✓
+- Pembayaran: 4 filters (Status/Metode/From/To) all full-width 366px stacked, mobile cards with Detail button ✓
+- Create Pembayaran dialog: 358px wide (16px margin each side), 614px tall scrollable ✓
+- Mobile sidebar Sheet: 320px (max-w-xs), all 13 nav links visible ✓
+- Laporan: summary cards stack, export buttons wrap, transactions as mobile cards with colored amounts ✓
+- Landing page: hero, stats, all sections render correctly on mobile ✓
+- Lint: 0 errors, 9 warnings (all pre-existing RHF watch() React Compiler warnings)
+
+Stage Summary:
+- ENTIRE APP now fully mobile-responsive. Admin tables become stacked cards on mobile, filters stack full-width, dialogs fit screen, sidebar collapses to Sheet, dashboard cards use 2-col grid on small screens.
+- Ready for TWA conversion (mobile-first design confirmed at 390px width).

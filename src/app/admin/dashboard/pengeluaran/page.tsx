@@ -183,7 +183,7 @@ export default function PengeluaranPage() {
         filters={
           <>
             <Select value={kategoriFilter} onValueChange={setKategoriFilter}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Kategori" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Kategori" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Kategori</SelectItem>
                 {Object.entries(LABEL_KATEGORI_PENGELUARAN).map(([v, l]) => (
@@ -191,8 +191,8 @@ export default function PengeluaranPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px]" />
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px]" />
+            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full sm:w-[150px]" />
+            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full sm:w-[150px]" />
           </>
         }
       >
@@ -204,7 +204,7 @@ export default function PengeluaranPage() {
             </p>
           </div>
         </Card>
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -281,6 +281,66 @@ export default function PengeluaranPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-24 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data.map((p: any, i: number) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+              >
+                <Card className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate font-semibold">{p.judul}</p>
+                      {p.deskripsi && (
+                        <p className="line-clamp-1 text-xs text-muted-foreground">{p.deskripsi}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+                          {LABEL_KATEGORI_PENGELUARAN[p.kategori] ?? p.kategori}
+                        </span>
+                        <span className="text-xs text-muted-foreground">·</span>
+                        <span className="text-xs text-muted-foreground">{formatTanggalSingkat(p.tanggal)}</span>
+                      </div>
+                      <p className="font-bold text-rose-600 dark:text-rose-400">{formatRupiah(p.jumlah)}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(p)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <ConfirmDelete
+                        onConfirm={() => deleteMutation.mutate(p.id)}
+                        description={`Hapus pengeluaran ${p.judul}?`}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<ArrowDownCircle className="size-6" />}
+                title="Belum ada pengeluaran"
+                description="Tambahkan pengeluaran pertama Anda"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Tambah Pengeluaran
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -288,7 +288,7 @@ export default function TagihanPage() {
         searchPlaceholder="Cari nama siswa, periode..."
         filters={
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -300,7 +300,7 @@ export default function TagihanPage() {
           </Select>
         }
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -393,6 +393,82 @@ export default function TagihanPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-28 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data.map((t: any, i: number) => {
+              const pct = t.jumlah > 0 ? Math.min(100, Math.round((t.jumlahDibayar / t.jumlah) * 100)) : 0;
+              return (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                >
+                  <Card className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="truncate font-semibold">{t.siswa?.nama ?? "-"}</p>
+                        <p className="text-xs text-muted-foreground">{t.siswa?.nis}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t.jenisPembayaran?.nama ?? "-"} · {t.periode}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(t)}>
+                          <Pencil className="size-4" />
+                        </Button>
+                        <ConfirmDelete
+                          onConfirm={() => deleteMutation.mutate(t.id)}
+                          description={`Hapus tagihan ${t.siswa?.nama} - ${t.periode}?`}
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3 space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Progress Pembayaran</span>
+                        <span className="font-semibold">{pct}%</span>
+                      </div>
+                      <Progress value={pct} className="h-1.5" />
+                      <p className="text-xs text-muted-foreground">
+                        {formatRupiah(t.jumlahDibayar)} / {formatRupiah(t.jumlah)}
+                      </p>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground">Jatuh tempo: {formatTanggalSingkat(t.tanggalJatuhTempo)}</span>
+                      <StatusBadge value={t.status} label={LABEL_STATUS_TAGIHAN[t.status as keyof typeof LABEL_STATUS_TAGIHAN]} />
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<ReceiptText className="size-6" />}
+                title="Belum ada tagihan"
+                description="Tambahkan tagihan atau gunakan generate massal"
+                action={
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button variant="outline" onClick={() => setGenOpen(true)}>
+                      <Sparkles className="mr-2 size-4" />
+                      Generate Massal
+                    </Button>
+                    <Button onClick={openCreate} className="gradient-emerald text-white">
+                      <Plus className="mr-2 size-4" />
+                      Tambah Tagihan
+                    </Button>
+                  </div>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       {/* Create/Edit Dialog */}

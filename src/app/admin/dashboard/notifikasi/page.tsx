@@ -152,7 +152,7 @@ export default function NotifikasiPage() {
         searchPlaceholder="Cari notifikasi..."
         filters={
           <Select value={tipeFilter} onValueChange={setTipeFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tipe" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Tipe" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Tipe</SelectItem>
               {Object.entries(LABEL_TIPE_NOTIFIKASI).map(([v, l]) => (
@@ -162,7 +162,7 @@ export default function NotifikasiPage() {
           </Select>
         }
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -238,6 +238,64 @@ export default function NotifikasiPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-24 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data
+              .filter((n: any) => n.judul.toLowerCase().includes(search.toLowerCase()))
+              .map((n: any, i: number) => (
+                <motion.div
+                  key={n.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                >
+                  <Card className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="truncate font-semibold">{n.judul}</p>
+                        <p className="line-clamp-1 text-xs text-muted-foreground">{n.pesan}</p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                            {LABEL_TIPE_NOTIFIKASI[n.tipe as keyof typeof LABEL_TIPE_NOTIFIKASI] ?? n.tipe}
+                          </span>
+                          <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                            {LABEL_PENERIMA[n.penerima] ?? n.penerima}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{formatTanggalWaktu(n.createdAt)}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <ConfirmDelete
+                          onConfirm={() => deleteMutation.mutate(n.id)}
+                          description={`Hapus notifikasi "${n.judul}"?`}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<Bell className="size-6" />}
+                title="Belum ada notifikasi"
+                description="Kirim notifikasi pertama Anda"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Kirim Notifikasi
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       <Dialog open={open} onOpenChange={setOpen}>

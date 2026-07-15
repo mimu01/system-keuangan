@@ -176,7 +176,7 @@ export default function LaporanPage() {
         onSearchChange={() => {}}
         searchPlaceholder="Filter di atas"
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -251,6 +251,71 @@ export default function LaporanPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-20 w-full" /></Card>
+            ))
+          ) : data?.transactions?.length ? (
+            data.transactions.map((t: any, i: number) => {
+              const isPemasukan = t.tipe === "PEMASUKAN";
+              const kategoriLabel = isPemasukan
+                ? LABEL_KATEGORI[t.kategori as keyof typeof LABEL_KATEGORI] ?? t.kategori
+                : LABEL_KATEGORI_PENGELUARAN[t.kategori] ?? t.kategori;
+              return (
+                <motion.div
+                  key={`${t.id}-${i}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.01 }}
+                >
+                  <Card className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={
+                              isPemasukan
+                                ? "inline-flex shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+                                : "inline-flex shrink-0 rounded-full bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-600 dark:text-rose-400"
+                            }
+                          >
+                            {isPemasukan ? "Pemasukan" : "Pengeluaran"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{formatTanggalSingkat(t.tanggal)}</span>
+                        </div>
+                        <p className="font-medium leading-tight">{t.deskripsi}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {kategoriLabel}{t.siswa ?? t.ref ? ` · ${t.siswa ?? t.ref}` : ""}
+                        </p>
+                      </div>
+                      <p
+                        className={
+                          "shrink-0 font-bold " +
+                          (isPemasukan
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-rose-600 dark:text-rose-400")
+                        }
+                      >
+                        {isPemasukan ? "+" : "-"}{formatRupiah(t.jumlah)}
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<FileBarChart className="size-6" />}
+                title="Tidak ada transaksi"
+                description="Belum ada transaksi pada rentang tanggal ini"
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
     </div>
   );

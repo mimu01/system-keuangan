@@ -175,7 +175,7 @@ export default function WaliMuridPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Cari nama, email, no HP..."
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -249,6 +249,64 @@ export default function WaliMuridPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-24 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data.map((w: any, i: number) => (
+              <motion.div
+                key={w.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+              >
+                <Card className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate font-semibold">{w.nama}</p>
+                      <p className="truncate text-xs text-muted-foreground">{w.email}</p>
+                      {w.noHp && <p className="text-xs text-muted-foreground">HP: {w.noHp}</p>}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                          {w.hubungan}
+                        </span>
+                        <span className="text-xs text-muted-foreground">·</span>
+                        <span className="text-xs">{w.siswa?.nama ?? "-"}</span>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(w)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <ConfirmDelete
+                        onConfirm={() => deleteMutation.mutate(w.id)}
+                        description={`Hapus wali murid ${w.nama}?`}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<UsersRound className="size-6" />}
+                title="Belum ada wali murid"
+                description="Tambahkan data wali murid pertama Anda"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Tambah Wali Murid
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       <Dialog open={open} onOpenChange={setOpen}>

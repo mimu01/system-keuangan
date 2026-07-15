@@ -188,7 +188,7 @@ export function DashboardShell({
       {/* Main Content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-md sm:h-16 sm:px-6 sm:gap-3">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
@@ -200,7 +200,7 @@ export function DashboardShell({
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
+            <SheetContent side="left" className="w-[85vw] max-w-xs p-0">
               <SheetHeader className="sr-only">
                 <SheetTitle>Menu Navigasi</SheetTitle>
               </SheetHeader>
@@ -208,8 +208,8 @@ export function DashboardShell({
             </SheetContent>
           </Sheet>
 
-          <div className="flex-1">
-            <h2 className="text-sm font-semibold text-foreground sm:text-base">
+          <div className="flex-1 min-w-0">
+            <h2 className="truncate text-sm font-semibold text-foreground sm:text-base">
               {navItems.find((n) =>
                 n.href === "/admin/dashboard"
                   ? pathname === n.href
@@ -225,14 +225,14 @@ export function DashboardShell({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-accent"
+                  className="flex items-center gap-2 rounded-full px-1.5 py-1 hover:bg-accent sm:px-2"
                 >
                   <Avatar className="size-8 ring-1 ring-border">
                     <AvatarFallback className="gradient-emerald text-xs font-bold text-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="hidden text-left sm:block">
+                  <div className="hidden text-left md:block">
                     <p className="text-xs font-semibold leading-tight">
                       {admin.nama}
                     </p>
@@ -286,7 +286,7 @@ export function DashboardShell({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8"
+              className="mx-auto w-full max-w-7xl p-3 sm:p-6 lg:p-8"
             >
               {children}
             </motion.div>

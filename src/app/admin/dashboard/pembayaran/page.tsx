@@ -196,7 +196,7 @@ export default function PembayaranPage() {
         filters={
           <>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Status</SelectItem>
                 {Object.entries(LABEL_STATUS_PEMBAYARAN).map(([v, l]) => (
@@ -205,7 +205,7 @@ export default function PembayaranPage() {
               </SelectContent>
             </Select>
             <Select value={metodeFilter} onValueChange={setMetodeFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Metode" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="Metode" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Metode</SelectItem>
                 {Object.entries(LABEL_METODE).map(([v, l]) => (
@@ -213,12 +213,12 @@ export default function PembayaranPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px]" />
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px]" />
+            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full sm:w-[150px]" />
+            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full sm:w-[150px]" />
           </>
         }
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -291,6 +291,65 @@ export default function PembayaranPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-28 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data.map((p: any, i: number) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.02 }}
+              >
+                <Card className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate font-semibold">{p.tagihan?.siswa?.nama ?? "-"}</p>
+                      <p className="font-mono text-xs text-muted-foreground">{p.kodeTransaksi}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {p.tagihan?.jenisPembayaran?.nama ?? "-"} · {LABEL_METODE[p.metode as keyof typeof LABEL_METODE] ?? p.metode} · {formatTanggalSingkat(p.tanggalBayar)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="font-bold text-foreground">{formatRupiah(p.jumlah)}</span>
+                      <StatusBadge value={p.status} label={LABEL_STATUS_PEMBAYARAN[p.status as keyof typeof LABEL_STATUS_PEMBAYARAN]} />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-end gap-1">
+                    <Button variant="outline" size="sm" onClick={() => setDetailItem(p)}>
+                      <Eye className="mr-1.5 size-4" />
+                      Detail
+                    </Button>
+                    <ConfirmDelete
+                      onConfirm={() => deleteMutation.mutate(p.id)}
+                      description={`Hapus pembayaran ${p.kodeTransaksi}? Tagihan akan dikembalikan ke jumlah sebelumnya.`}
+                      title="Hapus Pembayaran"
+                    />
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<Wallet className="size-6" />}
+                title="Belum ada pembayaran"
+                description="Terima pembayaran pertama Anda"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Terima Pembayaran
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       {/* Create Dialog */}

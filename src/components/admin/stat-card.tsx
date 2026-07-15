@@ -29,11 +29,11 @@ export function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: "easeOut" }}
     >
-      <Card className="relative overflow-hidden p-5 transition-all hover:shadow-md hover:-translate-y-0.5">
+      <Card className="relative overflow-hidden p-4 transition-all hover:shadow-md hover:-translate-y-0.5 sm:p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <div className="min-w-0 space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground sm:text-sm">{title}</p>
+            <p className="text-xl font-bold tracking-tight text-foreground sm:text-2xl lg:text-3xl">
               {value}
             </p>
             {description && (
@@ -42,7 +42,7 @@ export function StatCard({
           </div>
           <div
             className={cn(
-              "flex size-11 shrink-0 items-center justify-center rounded-xl ring-1",
+              "flex size-10 shrink-0 items-center justify-center rounded-xl ring-1 sm:size-11",
               iconClassName ?? "bg-primary/10 text-primary ring-primary/20"
             )}
           >

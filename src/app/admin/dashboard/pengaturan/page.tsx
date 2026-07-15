@@ -124,9 +124,9 @@ export default function PengaturanPage() {
         icon={<Settings className="size-5" />}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
         {/* School Settings */}
-        <Card className="p-6 lg:col-span-2">
+        <Card className="p-4 sm:p-6 lg:col-span-2">
           <div className="mb-4 flex items-center gap-2">
             <Settings className="size-5 text-primary" />
             <h3 className="text-base font-semibold">Pengaturan Sekolah</h3>
@@ -203,7 +203,7 @@ export default function PengaturanPage() {
         {/* Right column - Account Info & Password */}
         <div className="space-y-6">
           {/* Account Info */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
               <Shield className="size-5 text-primary" />
               <h3 className="text-base font-semibold">Akun Admin</h3>
@@ -232,7 +232,7 @@ export default function PengaturanPage() {
           </Card>
 
           {/* Change Password */}
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
               <KeyRound className="size-5 text-primary" />
               <h3 className="text-base font-semibold">Ubah Kata Sandi</h3>

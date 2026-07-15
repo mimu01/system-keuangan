@@ -174,7 +174,7 @@ export default function KelasPage() {
         searchPlaceholder="Cari nama kelas..."
         filters={
           <Select value={tahunFilter} onValueChange={setTahunFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Tahun Ajaran" />
             </SelectTrigger>
             <SelectContent>
@@ -186,7 +186,7 @@ export default function KelasPage() {
           </Select>
         }
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -263,6 +263,66 @@ export default function KelasPage() {
             </Table>
           </div>
         </Card>
+
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="p-4"><Skeleton className="h-24 w-full" /></Card>
+            ))
+          ) : data?.data?.length ? (
+            data.data.map((k: any, i: number) => (
+              <motion.div
+                key={k.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+              >
+                <Card className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate font-semibold">{k.nama}</p>
+                        <Badge variant="secondary" className="rounded-full">Tingkat {k.tingkat}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Wali Kelas: {k.waliKelas ?? "-"}</p>
+                      <p className="text-xs text-muted-foreground">TA: {k.tahunAjaran?.nama ?? "-"}</p>
+                      <p className="text-xs">
+                        <span className="inline-flex items-center gap-1">
+                          <Users className="size-3.5 text-muted-foreground" />
+                          {k._count?.siswa ?? 0} / {k.kapasitas} siswa
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(k)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <ConfirmDelete
+                        onConfirm={() => deleteMutation.mutate(k.id)}
+                        description={`Hapus kelas ${k.nama}?`}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card className="p-8">
+              <EmptyState
+                icon={<School className="size-6" />}
+                title="Belum ada kelas"
+                description="Tambahkan kelas pertama Anda untuk memulai"
+                action={
+                  <Button onClick={openCreate} className="gradient-emerald text-white">
+                    <Plus className="mr-2 size-4" />
+                    Tambah Kelas
+                  </Button>
+                }
+              />
+            </Card>
+          )}
+        </div>
       </DataTableShell>
 
       <Dialog open={open} onOpenChange={setOpen}>

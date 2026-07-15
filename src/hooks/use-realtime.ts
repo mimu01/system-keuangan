@@ -1,13 +1,20 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { io, Socket } from 'socket.io-client'
+import { io, type Socket } from 'socket.io-client'
 
 const REALTIME_PORT = 3003
 
-export function useRealtime(events?: string[], onEvent?: (event: string, payload: any) => void) {
+export function useRealtime(
+  events?: string[],
+  onEvent?: (event: string, payload: unknown) => void
+) {
   const socketRef = useRef<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+
+  // Simpan callback terbaru di ref agar event listener selalu memanggil versi terbaru
+  const onEventRef = useRef(onEvent)
+  onEventRef.current = onEvent
 
   useEffect(() => {
     const socket = io('/?XTransformPort=' + REALTIME_PORT, {
@@ -22,16 +29,19 @@ export function useRealtime(events?: string[], onEvent?: (event: string, payload
     socket.on('connect', () => setIsConnected(true))
     socket.on('disconnect', () => setIsConnected(false))
 
-    if (events && onEvent) {
+    if (events && events.length > 0) {
       events.forEach((event) => {
-        socket.on(event, (payload: any) => onEvent(event, payload))
+        socket.on(event, (payload: unknown) => {
+          onEventRef.current?.(event, payload)
+        })
       })
     }
 
     return () => {
       socket.disconnect()
+      socketRef.current = null
     }
   }, [])
 
-  return { socket: socketRef.current, isConnected }
+  return { isConnected }
 }
