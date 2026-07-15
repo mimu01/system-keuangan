@@ -57,7 +57,9 @@ Sistem Informasi Keuangan MI Miftahul Ulum 01 terdiri dari **dua aplikasi** yang
 | **Auth** | JWT cookie `admin_session` (7 hari) |
 | **Role** | `ADMIN` — full CRUD ke semua data |
 
-**Fitur (sudah ada):** Dashboard, Data Siswa, Wali Murid, Kelas, Jenis Pembayaran, Tagihan (+ generate massal), Pembayaran, Pengeluaran, Laporan (export), Tahun Ajaran, Notifikasi, Activity Log, Pengaturan.
+**Fitur (sudah ada):** Dashboard, Data Siswa, Wali Murid, Data Kelas, Jenis Pembayaran, Tagihan (+ generate massal), Pembayaran, Pengeluaran, Laporan (export CSV), Tahun Ajaran, Notifikasi, Activity Log, Pengaturan.
+
+> Lihat [PROGRESS.md](./PROGRESS.md) untuk status detail setiap fitur.
 
 ### Aplikasi 2: Wali Murid App (`/app`)
 
@@ -70,13 +72,15 @@ Sistem Informasi Keuangan MI Miftahul Ulum 01 terdiri dari **dua aplikasi** yang
 | **Auth** | JWT cookie `wali_session` (30 hari) |
 | **Role** | `WALI_MURID` — read-only, scoped ke data anak sendiri |
 
-**Fitur (akan dibangun):**
+**Fitur (sudah dibangun):**
 1. **Dashboard** — ringkasan tagihan aktif, total tunggakan, pembayaran terbaru
 2. **Profil Anak** — data siswa (nama, NIS, kelas, foto, jenis kelamin, tanggal lahir)
 3. **Status Tagihan** — daftar tagihan dengan status (Lunas/Belum/Sebagian), filter periode
-4. **Riwayat Pembayaran** — histori semua pembayaran + download bukti (PDF/struk)
+4. **Riwayat Pembayaran** — histori semua pembayaran + link bukti
 5. **Notifikasi** — daftar notifikasi (tagihan baru, pembayaran berhasil, pengumuman, jatuh tempo)
 6. **Profil** — data wali murid + ubah kata sandi + logout
+
+> Lihat [PROGRESS.md](./PROGRESS.md) untuk status detail.
 
 ---
 
@@ -199,47 +203,89 @@ src/app/
 
 ## 6. Roadmap Implementasi
 
-### Fase 1 — Fondasi Wali Murid App ✅ (Sedang dikerjakan)
-- [x] ROADMAP.md (dokumen ini)
-- [ ] `wali-auth.ts` — lib auth terpisah (JWT `wali_session`)
-- [ ] `/app` login page (mobile-first, PWA feel)
-- [ ] `/app/dashboard` layout — mobile shell + bottom navigation (6 menu)
-- [ ] API wali: `/api/wali/auth/login`, `/api/wali/auth/logout`, `/api/wali/me`
-- [ ] Update landing page: tombol "Unduh Aplikasi Wali Murid" → `/app`
+### Fase 1 — Fondasi Wali Murid App ✅ SELESAI
+- [x] ROADMAP.md + PROGRESS.md
+- [x] `wali-auth.ts` — lib auth terpisah (JWT `wali_session`)
+- [x] `/app` login page (mobile-first, PWA feel)
+- [x] `/app/dashboard` layout — mobile shell + bottom navigation (5 menu)
+- [x] API wali: `/api/wali/auth/login`, `/api/wali/auth/logout`, `/api/wali/me`, dll
+- [x] Update landing page: tombol "Unduh Aplikasi Wali Murid" → `/app`
 
-### Fase 2 — Halaman Inti Wali Murid
-- [ ] Dashboard wali — kartu total tagihan, tunggakan, pembayaran terbaru
-- [ ] Status Tagihan — daftar tagihan anak, filter status/periode, progress bayar
-- [ ] Riwayat Pembayaran — histori transaksi + download bukti (struk PDF)
-- [ ] Profil Anak — data lengkap siswa
-- [ ] Notifikasi — daftar notifikasi (realtime via Supabase)
-- [ ] Profil Wali — data wali + ubah kata sandi + logout
+### Fase 2 — Halaman Inti Wali Murid ✅ SELESAI
+- [x] Dashboard wali — kartu total tagihan, tunggakan, pembayaran terbaru
+- [x] Status Tagihan — daftar tagihan anak, filter status/periode, progress bayar
+- [x] Riwayat Pembayaran — histori transaksi + link bukti
+- [x] Profil Anak — data lengkap siswa
+- [x] Notifikasi — daftar notifikasi (realtime via Supabase)
+- [x] Profil Wali — data wali + ubah kata sandi + logout
 
-### Fase 3 — PWA Enhancement
+### Fase 3 — Stabilisasi & Performa ✅ SELESAI
+- [x] Migrasi SQLite → Supabase PostgreSQL
+- [x] Supabase Realtime (postgres_changes)
+- [x] 40+ database indexes
+- [x] Query optimization (Promise.all, no N+1)
+- [x] Targeted invalidation per event
+- [x] Hapus polling fallback (no-op jika env belum set)
+- [x] Mobile responsive (admin dual-view + wali mobile-first)
+
+### Fase 4 — PWA Enhancement ⬜ BERIKUTNYA
 - [ ] Service worker untuk offline cache
 - [ ] Install prompt (beforeinstallprompt)
-- [ ] Push notification via FCM (Firebase Cloud Messaging)
+- [ ] Offline fallback page
+- [ ] Cache strategy (cache-first assets, network-first data)
 - [ ] Splash screen optimization
 - [ ] App shortcut (Android TWA)
 
-### Fase 4 — Realtime & Notifikasi
-- [ ] Realtime: admin input pembayaran → dashboard wali update otomatis
-- [ ] Realtime: admin generate tagihan → notifikasi wali muncul
-- [ ] Push notification: tagihan baru, pembayaran berhasil, jatuh tempo
-- [ ] Email notification (opsional, via Resend/SendGrid)
+### Fase 5 — Push Notification ⬜
+- [ ] Firebase Cloud Messaging (FCM) integration
+- [ ] Request notification permission
+- [ ] Generate FCM token per device (field `fcmToken` sudah ada)
+- [ ] Server-side push: tagihan baru, pembayaran berhasil, jatuh tempo, pengumuman
+- [ ] Notification click handler
+- [ ] Background notification
 
-### Fase 5 — Android TWA
+### Fase 6 — Export PDF ⬜
+- [ ] Export Laporan PDF (admin) — kop sekolah, tabel, tanda tangan
+- [ ] Download Struk/Bukti Pembayaran PDF (wali & admin)
+- [ ] Library: @react-pdf/renderer atau jspdf
+
+### Fase 7 — Android TWA ⬜
 - [ ] Bubblewrap init dari URL Vercel
+- [ ] Digital Asset Links (assetlinks.json)
 - [ ] Build AAB → upload ke Play Store
-- [ ] Asset Links (digital asset links verification)
 - [ ] Play Store listing
 
-### Fase 6 — Pengembangan Lanjutan
-- [ ] Multi-anak per wali (saat ini 1 wali : 1 siswa)
-- [ ] Pembayaran online (Midtrans/Xendit integration)
+### Fase 8 — Keamanan Lanjutan ⬜
+- [ ] Supabase RLS (Row Level Security) di semua tabel
+- [ ] Rate limiting API
+- [ ] CSRF protection
+- [ ] Audit log enhancement (field changes)
+
+### Fase 9 — Supabase Storage ⬜
+- [ ] Upload bukti pembayaran (wali)
+- [ ] Upload foto siswa (admin)
+- [ ] Upload bukti pengeluaran (admin)
+- [ ] Signed URL untuk akses terbatas
+
+### Fase 10 — Edge Functions & Cron ⬜
+- [ ] Cron: notifikasi jatuh tempo (H-3, H-1)
+- [ ] Cron: auto-generate tagihan SPP awal bulan
+- [ ] Email notification (via Resend/SendGrid)
+- [ ] Scheduled backup
+
+### Fase 11 — Pembayaran Online ⬜ (opsional)
+- [ ] Integrasi Midtrans/Xendit
+- [ ] Virtual Account, QRIS, E-wallet
+- [ ] Payment flow wali (pilih tagihan → bayar → webhook)
+- [ ] Webhook receiver → auto-update tagihan
+
+### Fase 12 — Pengembangan Lanjutan ⬜ (opsional)
+- [ ] Multi-anak per wali (1 wali : banyak siswa)
+- [ ] Chat wali ↔ admin
 - [ ] QR code pembayaran
 - [ ] Export laporan wali (PDF bulanan)
-- [ ] Chat wali ↔ admin
+- [ ] Pencarian global admin
+- [ ] Multi-sekolah (SaaS multi-tenant)
 
 ---
 
