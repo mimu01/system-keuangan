@@ -337,3 +337,36 @@ Stage Summary:
 - Catatan penting untuk production: SQLite perlu dimigrasi ke PostgreSQL/MySQL (Vercel filesystem ephemeral) - cukup ubah provider di prisma/schema.prisma + DATABASE_URL
 - Keamanan: .env (berisi JWT_SECRET) TIDAK ter-commit, token GitHub dihapus dari .git/config setelah push
 - Repo baru `sik-mi-miftahul-ulum-01` yang kosong perlu dihapus manual oleh user di GitHub (token tidak punya permission delete_repo)
+
+---
+Task ID: supabase-migration
+Agent: Orchestrator (main)
+Task: Migrasi database SQLite → Supabase PostgreSQL + Realtime untuk deploy Vercel
+
+Work Log:
+- Ubah prisma/schema.prisma: provider sqlite → postgresql
+- Update .env: DATABASE_URL ke Supabase session pooler (port 5432, IPv4 untuk Vercel compatibility)
+- Jalankan db:push: semua 12 tabel berhasil dibuat di Supabase PostgreSQL (13.78s)
+- Buat prisma/enable-realtime.ts: jalankan ALTER PUBLICATION supabase_realtime ADD TABLE untuk semua 12 tabel → verifikasi semua tabel aktif Realtime
+- Jalankan seed: admin, 1 tahun ajaran, 6 kelas, 12 siswa, 12 wali murid, 5 jenis pembayaran, tagihan, pembayaran, 5 pengeluaran, notifikasi, 6 pengaturan — semua berhasil di Supabase
+- Install @supabase/supabase-js@2.110.5
+- Buat src/lib/supabase.ts: getSupabase() client (browser-side, return null jika NEXT_PUBLIC_SUPABASE_URL/ANON_KEY belum diset → graceful degradation)
+- Rewrite src/hooks/use-realtime.ts: 
+  - Mode Supabase Realtime (jika env vars ada): subscribe ke postgres_changes pada 11 tabel, map table+eventType → event name (kompatibel dengan API lama), filter berdasarkan events yang didengarkan consumer
+  - Mode Polling Fallback (jika env vars belum ada): setInterval 15 detik call onEvent('dashboard:refresh')
+  - Fix lint: ref update dipindah ke useEffect, hapus setState di effect body
+- Update src/lib/realtime.ts: broadcast() jadi no-op (Supabase auto-broadcast perubahan DB via publication, jadi API routes tidak perlu manual broadcast)
+- Hentikan socket.io mini-service (port 3003) — diganti Supabase Realtime yang native & serverless-compatible
+- Update .env.example: 4 env vars (DATABASE_URL, JWT_SECRET, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) dengan instruksi
+- Update README.md: tech stack, quick start, deploy Vercel dengan 4 env vars, hapus instruksi mini-service
+- Lint: 0 errors, 9 warnings (pre-existing RHF)
+- Test: login API berhasil (HTTP 200, return admin data dari Supabase), /admin page compile & serve 200
+- Push ke GitHub: commit 157b910, 9 files changed
+
+Stage Summary:
+- Database sepenuhnya bermigrasi ke Supabase PostgreSQL (bukan SQLite lagi)
+- Realtime: Supabase Realtime native (postgres_changes) — cocok untuk Vercel serverless, tidak butuh mini-service terpisah
+- Graceful fallback: jika anon key belum diset, app tetap berfungsi dengan polling 15 detik
+- Repo GitHub https://github.com/mimu01/system-keuangan sudah update
+- SIAP DEPLOY VERCEL dengan 4 env vars: DATABASE_URL, JWT_SECRET, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+- User perlu ambil anon key dari Supabase Dashboard > Settings > API
