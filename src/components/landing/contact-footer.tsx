@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { Send, Download, GraduationCap, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react'
@@ -181,20 +182,20 @@ export function DownloadCTA() {
               transition={{ delay: 0.3 }}
               className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
             >
-              <button className="w-full sm:w-auto flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-white text-emerald-700 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all">
+              <Link href="/app" className="w-full sm:w-auto flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-white text-emerald-700 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all">
                 <Download className="w-5 h-5" />
                 <div className="text-left">
                   <div className="text-[10px] font-medium opacity-70">Unduh untuk</div>
                   <div className="text-sm leading-tight">Android (PWA)</div>
                 </div>
-              </button>
-              <button className="w-full sm:w-auto flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-white/15 backdrop-blur text-white font-bold border border-white/20 hover:bg-white/20 hover:scale-[1.02] transition-all">
+              </Link>
+              <Link href="/app" className="w-full sm:w-auto flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-white/15 backdrop-blur text-white font-bold border border-white/20 hover:bg-white/20 hover:scale-[1.02] transition-all">
                 <Download className="w-5 h-5" />
                 <div className="text-left">
                   <div className="text-[10px] font-medium opacity-70">Buka di</div>
                   <div className="text-sm leading-tight">Browser HP</div>
                 </div>
-              </button>
+              </Link>
             </motion.div>
 
             {/* Steps */}

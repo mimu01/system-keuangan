@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Download, GraduationCap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -87,12 +88,11 @@ export function Navbar() {
           {/* Actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button
-              onClick={() => handleNavClick('#unduh')}
-              className="hidden sm:flex gradient-emerald text-white border-0 shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30 hover:scale-[1.02] transition-all rounded-xl"
-            >
-              <Download className="w-4 h-4 mr-1.5" />
-              Unduh Aplikasi
+            <Button asChild className="hidden sm:flex gradient-emerald text-white border-0 shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30 hover:scale-[1.02] transition-all rounded-xl">
+              <Link href="/app">
+                <Download className="w-4 h-4 mr-1.5" />
+                Unduh Aplikasi
+              </Link>
             </Button>
 
             {/* Mobile menu trigger */}
@@ -151,12 +151,11 @@ export function Navbar() {
                 ))}
               </nav>
               <div className="mt-auto">
-                <Button
-                  onClick={() => handleNavClick('#unduh')}
-                  className="w-full gradient-emerald text-white border-0 shadow-md rounded-xl"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Unduh Aplikasi Wali Murid
+                <Button asChild className="w-full gradient-emerald text-white border-0 shadow-md rounded-xl">
+                  <Link href="/app">
+                    <Download className="w-4 h-4 mr-2" />
+                    Unduh Aplikasi Wali Murid
+                  </Link>
                 </Button>
               </div>
             </motion.div>

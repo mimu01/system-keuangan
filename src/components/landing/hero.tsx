@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Download, ArrowRight, Sparkles, ShieldCheck, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -68,13 +69,11 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.25 }}
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
           >
-            <Button
-              onClick={() => scrollTo('#unduh')}
-              size="lg"
-              className="w-full sm:w-auto gradient-emerald text-white border-0 text-base h-14 px-8 shadow-xl shadow-emerald-600/25 hover:shadow-2xl hover:shadow-emerald-600/40 hover:scale-[1.02] transition-all rounded-2xl group"
-            >
-              <Download className="w-5 h-5 mr-2 group-hover:translate-y-0.5 transition-transform" />
-              Unduh Aplikasi Wali Murid
+            <Button asChild size="lg" className="w-full sm:w-auto gradient-emerald text-white border-0 text-base h-14 px-8 shadow-xl shadow-emerald-600/25 hover:shadow-2xl hover:shadow-emerald-600/40 hover:scale-[1.02] transition-all rounded-2xl group">
+              <Link href="/app">
+                <Download className="w-5 h-5 mr-2 group-hover:translate-y-0.5 transition-transform" />
+                Unduh Aplikasi Wali Murid
+              </Link>
             </Button>
             <Button
               onClick={() => scrollTo('#fitur')}

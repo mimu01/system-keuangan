@@ -370,3 +370,61 @@ Stage Summary:
 - Repo GitHub https://github.com/mimu01/system-keuangan sudah update
 - SIAP DEPLOY VERCEL dengan 4 env vars: DATABASE_URL, JWT_SECRET, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
 - User perlu ambil anon key dari Supabase Dashboard > Settings > API
+
+---
+Task ID: wali-feature-pages
+Agent: Feature Pages Builder (wali murid app)
+Task: Build 5 remaining feature pages for Wali Murid mobile app (Tagihan, Riwayat Pembayaran, Notifikasi, Profil Anak, Profil Wali + Ubah Sandi)
+
+Work Log:
+- Read existing dashboard page.tsx, app-shell.tsx, types.ts, status-badge.tsx, and all wali API routes to match exact design pattern & response shapes
+- Created 5 new pages under /home/z/my-project/src/app/app/dashboard/:
+
+1. tagihan/page.tsx — Status Tagihan
+   - Page title "Tagihan" + subtitle, filter pills (Semua/Lunas/Belum Bayar/Sebagian) horizontal scroll, active = gradient-emerald
+   - useQuery key ['wali-tagihan', filter] fetching /api/wali/tagihan?status={filter}
+   - Tagihan cards: jenisPembayaran.nama + StatusBadge, periode & jatuh tempo (formatTanggalSingkat), progress bar (gradient-emerald width = jumlahDibayar/jumlah %), bottom row Dibayar/Total
+   - Collapsible payment history (kodeTransaksi, metode, tanggalBayar, jumlah, status) using shadcn Collapsible + AnimatePresence + ChevronDown rotation
+   - Empty state: CheckCircle2 icon card with filter-specific message
+
+2. pembayaran/page.tsx — Riwayat Pembayaran
+   - useQuery key ['wali-pembayaran']
+   - Summary hero card (gradient-emerald): total pembayaran BERHASIL (sum jumlah) + count transaksi
+   - Pembayaran cards: kodeTransaksi (mono), jenisPembayaran.nama + periode, metode (LABEL_METODE) · tanggal, right side jumlah (emerald bold) + StatusBadge, "Lihat Bukti" link if buktiPembayaran
+   - Empty state: Wallet icon card
+
+3. notifikasi/page.tsx — Notifikasi
+   - useQuery key ['wali-notifikasi']
+   - Cards with tipe-based icon in colored circle: TAGIHAN_BARU=ReceiptText(amber), PEMBAYARAN_BERHASIL=CheckCircle2(emerald), PENGUMUMAN=Bell(sky), JATUH_TEMPO=CalendarClock(rose)
+   - judul + formatTanggalSingkat(createdAt) right, pesan muted
+   - Unread indicator: emerald left border (border-l-4) + emerald dot top-right when !dibaca
+   - Empty state: Bell icon card
+
+4. profil-anak/page.tsx — Profil Anak
+   - useQuery key ['wali-siswa'] → { siswa, wali }
+   - Profile header card: avatar (foto or first-letter gradient-emerald size-20), nama (xl bold), NIS, kelas badge + StatusBadge
+   - Detail card (divide-y rows): NIS, NISN, Jenis Kelamin (L=Laki-laki/P=Perempuan), Tempat Lahir, Tanggal Lahir (formatTanggal), Alamat, Tahun Ajaran, Wali Kelas
+   - Wali murid info card at bottom (nama + hubungan)
+
+5. profil/page.tsx — Profil Wali + Ubah Sandi
+   - useQuery key ['wali-me'] → { wali } with siswa
+   - Profile header card: avatar, nama, email, hubungan badge (ORTU→Orang Tua, WALI→Wali)
+   - Info card: No HP, Pekerjaan, Alamat (with icons)
+   - Anak card: link to /app/dashboard/profil-anak with siswa.nama + kelas
+   - Ubah Kata Sandi form (React Hook Form + Zod resolver): currentPassword, newPassword (min 6), confirmPassword (must match), all with show/hide toggle (Eye/EyeOff), submit button gradient-emerald, POST to /api/wali/auth/change-password, toast.success on success + reset, toast.error on failure
+   - Logout button (destructive variant, full width): POST /api/wali/auth/logout → router.push('/app')
+
+Design consistency:
+- All 'use client', mobile-first cards (Card p-3.5/p-4), motion.div with initial={{opacity:0,y:8}} animate delay i*0.05
+- Skeleton loading states (h-32/h-24/h-20 rounded-2xl/3xl)
+- Emerald accent (text-emerald-600 dark:text-emerald-400, bg-emerald-500/10, gradient-emerald)
+- Reused StatusBadge from @/components/admin/status-badge, formatRupiah/formatTanggal/formatTanggalSingkat/LABEL_* from @/lib/types
+- All text Bahasa Indonesia, no sidebar (bottom nav in layout)
+
+Lint: 0 errors, 9 warnings (all pre-existing RHF watch() warnings in admin pages — none from new files)
+
+Stage Summary:
+- Wali Murid app feature pages complete: Tagihan, Riwayat Pembayaran, Notifikasi, Profil Anak, Profil Wali
+- All 5 bottom-nav destinations now functional
+- Matches dashboard design pattern (emerald theme, motion, Skeleton, cards)
+- Ready for end-to-end wali murid UX testing
