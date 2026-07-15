@@ -75,3 +75,6 @@ mini-services/*/*.log
 # System skill documentation (bukan bagian dari aplikasi)
 skills/
 .zscripts/
+
+# Sandbox tool outputs
+tool-results/
