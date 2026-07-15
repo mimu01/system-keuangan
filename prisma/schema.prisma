@@ -30,6 +30,8 @@ model Admin {
   pengeluaran  Pengeluaran[]
   notifikasi   Notifikasi[]   @relation("NotifikasiDibuatOleh")
 
+  @@index([role])
+  @@index([deletedAt])
   @@map("admins")
 }
 
@@ -67,6 +69,8 @@ model Kelas {
   tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
   siswa       Siswa[]
 
+  @@index([tahunAjaranId])
+  @@index([deletedAt])
   @@map("kelas")
 }
 
@@ -94,6 +98,11 @@ model Siswa {
   waliMurid     WaliMurid?
   tagihan       Tagihan[]
 
+  @@index([kelasId])
+  @@index([tahunAjaranId])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([nis])
   @@map("siswa")
 }
 
@@ -117,6 +126,9 @@ model WaliMurid {
   siswa       Siswa       @relation(fields: [siswaId], references: [id])
   pembayaran  Pembayaran[]
 
+  @@index([siswaId])
+  @@index([deletedAt])
+  @@index([email])
   @@map("wali_murid")
 }
 
@@ -137,6 +149,10 @@ model JenisPembayaran {
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   tagihan     Tagihan[]
 
+  @@index([tahunAjaranId])
+  @@index([kategori])
+  @@index([aktif])
+  @@index([deletedAt])
   @@map("jenis_pembayaran")
 }
 
@@ -161,6 +177,13 @@ model Tagihan {
   tahunAjaran     TahunAjaran   @relation(fields: [tahunAjaranId], references: [id])
   pembayaran      Pembayaran[]
 
+  @@index([siswaId])
+  @@index([jenisPembayaranId])
+  @@index([tahunAjaranId])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([periode])
+  @@index([tanggalJatuhTempo])
   @@map("tagihan")
 }
 
@@ -185,6 +208,14 @@ model Pembayaran {
   waliMurid   WaliMurid? @relation(fields: [waliMuridId], references: [id])
   admin       Admin?     @relation("PembayaranDiterimaOleh", fields: [diterimaOleh], references: [id])
 
+  @@index([tagihanId])
+  @@index([waliMuridId])
+  @@index([diterimaOleh])
+  @@index([status])
+  @@index([metode])
+  @@index([deletedAt])
+  @@index([tanggalBayar])
+  @@index([kodeTransaksi])
   @@map("pembayaran")
 }
 
@@ -204,6 +235,10 @@ model Pengeluaran {
 
   admin       Admin?   @relation(fields: [dibuatOleh], references: [id])
 
+  @@index([dibuatOleh])
+  @@index([kategori])
+  @@index([deletedAt])
+  @@index([tanggal])
   @@map("pengeluaran")
 }
 
@@ -223,6 +258,12 @@ model Notifikasi {
 
   admin       Admin?   @relation("NotifikasiDibuatOleh", fields: [dibuatOleh], references: [id])
 
+  @@index([dibuatOleh])
+  @@index([tipe])
+  @@index([penerima])
+  @@index([dibaca])
+  @@index([deletedAt])
+  @@index([createdAt])
   @@map("notifikasi")
 }
 
@@ -240,6 +281,10 @@ model ActivityLog {
 
   admin       Admin?   @relation(fields: [adminId], references: [id])
 
+  @@index([adminId])
+  @@index([aksi])
+  @@index([modul])
+  @@index([createdAt])
   @@map("activity_log")
 }
 

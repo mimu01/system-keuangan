@@ -3,22 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
 
-// Tabel yang dipantau untuk realtime
-const REALTIME_TABLES = [
-  'pembayaran',
-  'tagihan',
-  'pengeluaran',
-  'notifikasi',
-  'siswa',
-  'wali_murid',
-  'kelas',
-  'jenis_pembayaran',
-  'tahun_ajaran',
-  'admins',
-  'pengaturan',
-] as const
-
-// Mapping tabel+aksi → event name (kompatibel dengan event lama)
+// Mapping tabel → event yang dipancarkan ke consumer
 function mapToEvent(table: string, eventType: string): string {
   switch (table) {
     case 'pembayaran':
@@ -35,11 +20,17 @@ function mapToEvent(table: string, eventType: string): string {
 }
 
 /**
- * Hook realtime.
- * - Jika Supabase terkonfigurasi: subscribe ke postgres_changes (real-time true)
- * - Jika tidak: fallback ke polling (invalidate setiap 15 detik)
+ * Hook realtime berbasis Supabase Realtime.
  *
- * Callback menerima (event, payload) — consumer invalidate query cache.
+ * Jika NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY sudah diset,
+ * hook akan subscribe ke postgres_changes pada tabel aplikasi.
+ *
+ * Jika BELUM diset (mis. env vars lupa dikonfigurasi), hook TIDAK melakukan
+ * apa-apa (no-op) — TIDAK ada polling yang membebani. Realtime non-aktif
+ * sampai env vars dikonfigurasi. Data tetap bisa dilihat, hanya tidak
+ * auto-refresh.
+ *
+ * Konsumen (dashboard) invalidate query yang relevan saat event diterima.
  */
 export function useRealtime(
   events?: string[],
@@ -48,7 +39,6 @@ export function useRealtime(
   const [isConnected, setIsConnected] = useState(false)
   const onEventRef = useRef(onEvent)
 
-  // Update ref terbaru di effect (bukan saat render)
   useEffect(() => {
     onEventRef.current = onEvent
   })
@@ -56,41 +46,30 @@ export function useRealtime(
   useEffect(() => {
     const supabase = getSupabase()
 
-    if (supabase && isSupabaseConfigured) {
-      // ===== Mode Supabase Realtime =====
-      const channel = supabase
-        .channel('app-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public' },
-          (payload: any) => {
-            const table = payload.table
-            const eventType = payload.eventType
-            const event = mapToEvent(table, eventType)
-            // Filter berdasarkan events yang didengarkan consumer (jika diberikan)
-            if (!events || events.length === 0 || events.includes(event)) {
-              onEventRef.current?.(event, payload.new)
-            }
-          }
-        )
-        .subscribe((status) => {
-          setIsConnected(status === 'SUBSCRIBED')
-        })
-
-      return () => {
-        supabase.removeChannel(channel)
-      }
+    // No-op jika Supabase belum dikonfigurasi
+    if (!supabase || !isSupabaseConfigured) {
+      return
     }
 
-    // ===== Mode Polling Fallback =====
-    // Dipakai jika NEXT_PUBLIC_SUPABASE_URL/ANON_KEY belum diset.
-    // Invalidate setiap 15 detik agar dashboard tetap update.
-    // (isConnected tetap false — default state)
-    const interval = setInterval(() => {
-      onEventRef.current?.('dashboard:refresh', null)
-    }, 15000)
+    const channel = supabase
+      .channel('app-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public' },
+        (payload: { table: string; eventType: string; new: unknown }) => {
+          const event = mapToEvent(payload.table, payload.eventType)
+          if (!events || events.length === 0 || events.includes(event)) {
+            onEventRef.current?.(event, payload.new)
+          }
+        }
+      )
+      .subscribe((status: string) => {
+        setIsConnected(status === 'SUBSCRIBED')
+      })
 
-    return () => clearInterval(interval)
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return { isConnected }

@@ -47,7 +47,7 @@ export function AppShell({ wali, siswa, children }: AppShellProps) {
   const [loggingOut, setLoggingOut] = useState(false)
   const queryClient = useQueryClient()
 
-  // Realtime: invalidate queries saat ada perubahan data
+  // Realtime: invalidate HANYA query wali yang relevan per event
   useRealtime(
     [
       'dashboard:refresh',
@@ -58,7 +58,25 @@ export function AppShell({ wali, siswa, children }: AppShellProps) {
       'notifikasi:new',
     ],
     (event) => {
-      queryClient.invalidateQueries()
+      switch (event) {
+        case 'pembayaran:created':
+        case 'pembayaran:updated':
+          queryClient.invalidateQueries({ queryKey: ['wali-dashboard'] })
+          queryClient.invalidateQueries({ queryKey: ['wali-pembayaran'] })
+          queryClient.invalidateQueries({ queryKey: ['wali-tagihan'] })
+          break
+        case 'tagihan:created':
+        case 'tagihan:updated':
+          queryClient.invalidateQueries({ queryKey: ['wali-tagihan'] })
+          queryClient.invalidateQueries({ queryKey: ['wali-dashboard'] })
+          break
+        case 'notifikasi:new':
+          queryClient.invalidateQueries({ queryKey: ['wali-notifikasi'] })
+          break
+        case 'dashboard:refresh':
+          queryClient.invalidateQueries({ queryKey: ['wali-dashboard'] })
+          break
+      }
       if (event === 'pembayaran:created') {
         toast.success('Pembayaran baru diterima', {
           description: 'Data pembayaran Anda telah diperbarui',

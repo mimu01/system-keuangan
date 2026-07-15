@@ -83,7 +83,7 @@ export function DashboardShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // Realtime: invalidate queries on broadcast events
+  // Realtime: invalidate HANYA query yang relevan per event (bukan semua)
   useRealtime(
     [
       "dashboard:refresh",
@@ -95,7 +95,33 @@ export function DashboardShell({
       "notifikasi:new",
     ],
     (event) => {
-      queryClient.invalidateQueries();
+      // Targeted invalidation — hanya refetch query yang terdampak
+      switch (event) {
+        case "pembayaran:created":
+        case "pembayaran:updated":
+          queryClient.invalidateQueries({ queryKey: ["pembayaran"] });
+          queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["tagihan"] });
+          queryClient.invalidateQueries({ queryKey: ["laporan"] });
+          break;
+        case "tagihan:created":
+        case "tagihan:updated":
+          queryClient.invalidateQueries({ queryKey: ["tagihan"] });
+          queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["tagihan-list"] });
+          break;
+        case "pengeluaran:created":
+          queryClient.invalidateQueries({ queryKey: ["pengeluaran"] });
+          queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["laporan"] });
+          break;
+        case "notifikasi:new":
+          queryClient.invalidateQueries({ queryKey: ["notifikasi"] });
+          break;
+        case "dashboard:refresh":
+          queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+          break;
+      }
       if (event === "pembayaran:created") {
         toast.info("Pembayaran baru diterima", {
           description: "Data pembayaran telah diperbarui",

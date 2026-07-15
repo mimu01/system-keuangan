@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCurrentWali } from '@/lib/wali-auth'
 import { db } from '@/lib/db'
-import { formatRupiah } from '@/lib/types'
 
 export async function GET() {
   try {
@@ -12,12 +11,63 @@ export async function GET() {
 
     const siswaId = wali.siswaId
 
-    // Ambil semua tagihan anak
-    const tagihan = await db.tagihan.findMany({
-      where: { siswaId, deletedAt: null },
-      select: { jumlah: true, jumlahDibayar: true, status: true },
-    })
+    // Ambil semua data yang dibutuhkan secara paralel (1 round-trip konseptual)
+    const [tagihan, pembayaranRecent, jatuhTempoTerdekat, notifikasiBelumDibaca] =
+      await Promise.all([
+        // Semua tagihan anak (untuk statistik)
+        db.tagihan.findMany({
+          where: { siswaId, deletedAt: null },
+          select: { jumlah: true, jumlahDibayar: true, status: true },
+        }),
+        // Pembayaran terbaru (5)
+        db.pembayaran.findMany({
+          where: { tagihan: { siswaId }, deletedAt: null },
+          orderBy: { tanggalBayar: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            kodeTransaksi: true,
+            jumlah: true,
+            metode: true,
+            status: true,
+            tanggalBayar: true,
+            tagihan: {
+              select: {
+                jenisPembayaran: { select: { nama: true } },
+                periode: true,
+              },
+            },
+          },
+        }),
+        // Tagihan jatuh tempo terdekat (belum lunas)
+        db.tagihan.findMany({
+          where: {
+            siswaId,
+            deletedAt: null,
+            status: { in: ['BELUM_BAYAR', 'SEBAGIAN'] },
+          },
+          orderBy: { tanggalJatuhTempo: 'asc' },
+          take: 3,
+          select: {
+            id: true,
+            periode: true,
+            jumlah: true,
+            jumlahDibayar: true,
+            tanggalJatuhTempo: true,
+            status: true,
+            jenisPembayaran: { select: { nama: true } },
+          },
+        }),
+        // Notifikasi belum dibira
+        db.notifikasi.count({
+          where: {
+            deletedAt: null,
+            OR: [{ penerima: 'SEMUA' }, { penerima: 'WALI_MURID' }],
+          },
+        }),
+      ])
 
+    // Hitung statistik dari array tagihan (di JS, bukan query DB)
     const totalTagihan = tagihan.length
     const tagihanLunas = tagihan.filter((t) => t.status === 'LUNAS').length
     const tagihanBelumBayar = tagihan.filter((t) => t.status === 'BELUM_BAYAR').length
@@ -26,55 +76,6 @@ export async function GET() {
     const totalNominalTagihan = tagihan.reduce((s, t) => s + t.jumlah, 0)
     const totalSudahDibayar = tagihan.reduce((s, t) => s + t.jumlahDibayar, 0)
     const totalTunggakan = totalNominalTagihan - totalSudahDibayar
-
-    // Pembayaran terbaru (5)
-    const pembayaranRecent = await db.pembayaran.findMany({
-      where: { tagihan: { siswaId }, deletedAt: null },
-      orderBy: { tanggalBayar: 'desc' },
-      take: 5,
-      select: {
-        id: true,
-        kodeTransaksi: true,
-        jumlah: true,
-        metode: true,
-        status: true,
-        tanggalBayar: true,
-        tagihan: {
-          select: {
-            jenisPembayaran: { select: { nama: true } },
-            periode: true,
-          },
-        },
-      },
-    })
-
-    // Tagihan jatuh tempo terdekat (belum lunas, urut jatuh tempo)
-    const jatuhTempoTerdekat = await db.tagihan.findMany({
-      where: {
-        siswaId,
-        deletedAt: null,
-        status: { in: ['BELUM_BAYAR', 'SEBAGIAN'] },
-      },
-      orderBy: { tanggalJatuhTempo: 'asc' },
-      take: 3,
-      select: {
-        id: true,
-        periode: true,
-        jumlah: true,
-        jumlahDibayar: true,
-        tanggalJatuhTempo: true,
-        status: true,
-        jenisPembayaran: { select: { nama: true } },
-      },
-    })
-
-    // Notifikasi belum dibaca
-    const notifikasiBelumDibaca = await db.notifikasi.count({
-      where: {
-        deletedAt: null,
-        OR: [{ penerima: 'SEMUA' }, { penerima: 'WALI_MURID' }],
-      },
-    })
 
     return NextResponse.json({
       siswa: {
