@@ -47,8 +47,8 @@ export function InstallPrompt() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Defer ke microtask agar tidak synchronous setState in effect
+    Promise.resolve().then(() => setMounted(true))
   }, [])
 
   useEffect(() => {

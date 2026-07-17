@@ -119,10 +119,35 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* Prevent text size adjust on orientation change (iOS Safari) */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Prevent tap highlight color (native app feel) */
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent overscroll/bounce (native app feel) */
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Prevent pull-to-refresh (native app feel) */
+    overscroll-behavior-y: contain;
+    /* Prevent text selection on UI (native app feel) — allow on inputs */
+    -webkit-user-select: none;
+    user-select: none;
+    /* Smooth scroll */
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Allow text selection on form inputs & content areas */
+  input, textarea, [contenteditable="true"], select {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  /* Ensure touch targets are at least 44px (Apple HIG) for interactive elements */
+  button, a[role="button"], [role="button"] {
+    touch-action: manipulation;
   }
 }
 
