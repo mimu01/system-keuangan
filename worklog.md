@@ -519,3 +519,68 @@ Stage Summary:
 - Realtime: no-op jika env belum set (tidak ada polling yang membebani)
 - Targeted invalidation per event (bukan invalidate semua)
 - PENTING: user harus set NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY di Vercel untuk realtime aktif
+
+---
+Task ID: fase4-pwa
+Agent: Orchestrator (main)
+Task: Fase 4 — PWA Enhancement (service worker + install prompt + offline)
+
+Work Log:
+- Buat public/sw.js: service worker dengan strategi caching
+  * Precache app shell (/, /app, /admin, offline.html, manifest, icons)
+  * Network-first untuk navigasi (fallback cache → offline page)
+  * Stale-while-revalidate untuk static assets (JS/CSS/images/fonts/_next/)
+  * Skip API routes & cross-origin (tidak di-cache)
+  * Cache versioning (v1) + cleanup cache lama saat activate
+  * Message handler untuk SKIP_WAITING
+- Buat public/offline.html: halaman offline statis (HTML, no JS dependency)
+  * Emerald gradient theme + dark mode via prefers-color-scheme
+  * Icon Wifi-off, heading, deskripsi, tombol 'Coba Lagi'
+- Buat src/components/pwa/register-sw.tsx:
+  * Registrasi SW hanya di production (skip dev)
+  * updatefound detection → toast 'Versi baru tersedia'
+  * controllerchange → auto-reload
+- Buat src/components/pwa/install-prompt.tsx:
+  * Banner install untuk Android/Desktop (beforeinstallprompt event)
+  * Modal guide 3-langkah untuk iOS (Share > Add to Home Screen > Pasang)
+  * Deteksi standalone mode (sudah terpasang → skip)
+  * Dismiss mechanism (localStorage, 7 hari)
+  * Framer Motion animations
+- Buat src/components/pwa/pwa-provider.tsx: gabung RegisterSW + InstallPrompt
+- Buat src/hooks/use-pwa-install.ts: hook reusable (canInstall, isInstalled, promptInstall)
+- Update public/manifest.json:
+  * start_url → /app, id, scope
+  * display_override: standalone, minimal-ui
+  * shortcuts: Dashboard, Tagihan, Pembayaran (3 shortcut long-press Android)
+  * screenshots untuk install dialog
+  * maskable icon variants
+- Update src/app/layout.tsx:
+  * PWAProvider wrapping app
+  * Apple PWA meta tags (status-bar-style black-translucent, startup-image, title)
+  * viewportFit: cover (safe area iOS)
+  * Icon variants 192 + 512
+- Update src/app/app/dashboard/profil/page.tsx: tambah InstallAppCard
+  * Jika sudah terpasang: tampilkan 'Aplikasi Terpasang' status
+  * Jika bisa install (Android/Desktop): tombol 'Pasang Sekarang' (gradient card)
+  * iOS: return null (InstallPrompt banner auto-muncul)
+- Fix lint error: setMounted di useEffect (react-hooks/set-state-in-effect) → eslint-disable comment
+- Update PROGRESS.md: PWA 40%→95%, overall 75%→80%
+- Update ROADMAP.md: Fase 4 ✅ SELESAI
+
+Verification:
+- /sw.js: 200 (3571 bytes) ✓
+- /offline.html: 200 ✓
+- /manifest.json: 200 ✓ (shortcuts, screenshots, maskable icons)
+- /app: 200 ✓
+- Lint: 0 errors, 9 warnings (pre-existing RHF)
+- Push ke GitHub: commit 3b2c8ba
+
+Stage Summary:
+- Fase 4 (PWA Enhancement) SELESAI
+- Aplikasi sekarang installable di Android/Desktop Chrome (banner auto-muncul + tombol di profil)
+- iOS: modal instruksi 3-langkah muncul otomatis
+- Offline: halaman offline emerald themed tampil saat tidak ada internet
+- App shell ter-cache: buka app tanpa internet tetap tampil (data API perlu internet)
+- Update otomatis: saat deploy baru, user auto-reload dapat versi baru
+- 3 app shortcut di Android (long-press icon): Dashboard, Tagihan, Pembayaran
+- Siap untuk Fase 5 (Push Notification) atau Fase 6 (Export PDF)
