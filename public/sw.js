@@ -11,7 +11,7 @@
  * Setelah stabil, bisa tambah caching secara bertahap.
  */
 
-const CACHE_NAME = 'sik-offline-v4'
+const CACHE_NAME = 'sik-offline-v5'
 const OFFLINE_HTML =
   '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
