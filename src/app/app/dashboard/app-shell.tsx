@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bell,
   GraduationCap,
@@ -14,7 +13,6 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -41,6 +39,16 @@ interface AppShellProps {
   children: React.ReactNode
 }
 
+/**
+ * AppShell untuk Wali Murid — mobile-first.
+ *
+ * Optimalisasi untuk HP lama (Android 8.1):
+ * - TANPA Framer Motion (ganti CSS transition yang ringan)
+ * - TANPA AnimatePresence (bisa hang saat navigasi di browser lama)
+ * - TANPA layoutId shared animation (berat, pakai ResizeObserver)
+ * - TANPA backdrop-filter berlebihan (bisa lambat di GPU lama)
+ * - Opacity modifier dikurangi (kurangi color-mix yang butuh polyfill)
+ */
 export function AppShell({ wali, siswa, children }: AppShellProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -109,11 +117,11 @@ export function AppShell({ wali, siswa, children }: AppShellProps) {
       : pathname.startsWith(href)
 
   return (
-    <div className="relative min-h-screen bg-muted/30">
-      {/* App container — mobile-first, centered max-width for tablet/desktop */}
+    <div className="min-h-screen bg-muted">
+      {/* App container — mobile-first, centered max-width untuk tablet/desktop */}
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background shadow-xl">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-md">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border bg-background px-4">
           <Link href="/app/dashboard" className="flex min-w-0 items-center gap-2.5">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg gradient-emerald text-white">
               <GraduationCap className="size-4" />
@@ -128,24 +136,13 @@ export function AppShell({ wali, siswa, children }: AppShellProps) {
           <ThemeToggle />
         </header>
 
-        {/* Page content */}
+        {/* Page content — tanpa animation (CSS transition saja) */}
         <main className="flex-1 overflow-x-hidden pb-20">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="p-4"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <div className="p-4">{children}</div>
         </main>
 
-        {/* Bottom Navigation */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t border-border bg-background/95 backdrop-blur-lg">
+        {/* Bottom Navigation — tanpa layoutId animation */}
+        <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t border-border bg-background">
           <div className="flex items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)]">
             {navItems.map((item) => {
               const Icon = item.icon
@@ -154,33 +151,16 @@ export function AppShell({ wali, siswa, children }: AppShellProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="relative flex flex-1 flex-col items-center gap-0.5 py-2.5"
+                  className={cn(
+                    'relative flex flex-1 flex-col items-center gap-0.5 py-2.5 transition-colors',
+                    active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                  )}
                 >
                   {active && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="absolute inset-x-2 inset-y-1 -z-10 rounded-xl bg-emerald-500/10"
-                      transition={{ type: 'spring', duration: 0.4, bounce: 0.2 }}
-                    />
+                    <span className="absolute inset-x-2 inset-y-1 -z-10 rounded-xl bg-emerald-500/10" />
                   )}
-                  <Icon
-                    className={cn(
-                      'size-5 transition-colors',
-                      active
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-muted-foreground'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'text-[10px] font-medium transition-colors',
-                      active
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-muted-foreground'
-                    )}
-                  >
-                    {item.label}
-                  </span>
+                  <Icon className="size-5" />
+                  <span className="text-[10px] font-medium">{item.label}</span>
                 </Link>
               )
             })}

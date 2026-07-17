@@ -1,11 +1,9 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
   ArrowRight,
-  Bell,
   CalendarClock,
   CheckCircle2,
   Clock,
@@ -15,7 +13,6 @@ import {
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/admin/status-badge'
 import {
   formatRupiah,
@@ -88,11 +85,7 @@ export default function WaliDashboardPage() {
       </div>
 
       {/* Tunggakan card (hero) */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      <div>
         {isLoading ? (
           <Skeleton className="h-36 rounded-3xl" />
         ) : (
@@ -106,7 +99,7 @@ export default function WaliDashboardPage() {
                     {formatRupiah(tunggakan)}
                   </p>
                 </div>
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15">
                   <Wallet className="size-6" />
                 </div>
               </div>
@@ -125,7 +118,7 @@ export default function WaliDashboardPage() {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 gap-3">
@@ -165,13 +158,8 @@ export default function WaliDashboardPage() {
               <Skeleton key={i} className="h-20 rounded-2xl" />
             ))
           ) : data?.jatuhTempoTerdekat?.length ? (
-            data.jatuhTempoTerdekat.map((t, i) => (
-              <motion.div
-                key={t.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-              >
+            data.jatuhTempoTerdekat.map((t) => (
+              <div key={t.id}>
                 <Card className="flex items-center justify-between gap-3 p-3.5">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">
@@ -192,7 +180,7 @@ export default function WaliDashboardPage() {
                     <p className="text-[10px] text-muted-foreground">sisa tagihan</p>
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             ))
           ) : (
             <Card className="p-6 text-center">
@@ -224,13 +212,8 @@ export default function WaliDashboardPage() {
               <Skeleton key={i} className="h-16 rounded-2xl" />
             ))
           ) : data?.pembayaranRecent?.length ? (
-            data.pembayaranRecent.map((p, i) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-              >
+            data.pembayaranRecent.map((p) => (
+              <div key={p.id}>
                 <Card className="flex items-center justify-between gap-3 p-3.5">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">
@@ -248,7 +231,7 @@ export default function WaliDashboardPage() {
                     <StatusBadge value={p.status} />
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             ))
           ) : (
             <Card className="p-6 text-center text-sm text-muted-foreground">
