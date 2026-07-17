@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PWAProvider } from "@/components/pwa/pwa-provider";
+import { GlobalErrorBoundary } from "@/components/global-error-boundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -85,27 +86,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <head>
-        {/* Apple PWA splash screen — resolusi iPhone umum */}
-        <link
-          rel="apple-touch-startup-image"
-          href="/icons/icon-512.png"
-        />
-        {/* Folos PWA */}
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="SIK MI MU 01" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} antialiased bg-background text-foreground font-sans`}
       >
         <ThemeProvider>
-          <PWAProvider>
-            {children}
-            <Toaster />
-            <SonnerToaster position="top-right" richColors closeButton />
-          </PWAProvider>
+          <GlobalErrorBoundary>
+            <PWAProvider>
+              {children}
+              <Toaster />
+              <SonnerToaster position="top-right" richColors closeButton />
+            </PWAProvider>
+          </GlobalErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

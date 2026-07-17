@@ -3,7 +3,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
 
-// Mapping tabel → event yang dipancarkan ke consumer
+// Tabel yang dipantau untuk realtime
+const REALTIME_TABLES = [
+  'pembayaran',
+  'tagihan',
+  'pengeluaran',
+  'notifikasi',
+  'siswa',
+  'wali_murid',
+  'kelas',
+  'jenis_pembayaran',
+  'tahun_ajaran',
+  'admins',
+  'pengaturan',
+] as const
+
+// Mapping tabel+aksi → event name (kompatibel dengan event lama)
 function mapToEvent(table: string, eventType: string): string {
   switch (table) {
     case 'pembayaran':
@@ -22,15 +37,10 @@ function mapToEvent(table: string, eventType: string): string {
 /**
  * Hook realtime berbasis Supabase Realtime.
  *
- * Jika NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY sudah diset,
- * hook akan subscribe ke postgres_changes pada tabel aplikasi.
+ * - Jika Supabase terkonfigurasi: subscribe ke postgres_changes (real-time true)
+ * - Jika tidak: no-op (TIDAK ada polling yang membebani)
  *
- * Jika BELUM diset (mis. env vars lupa dikonfigurasi), hook TIDAK melakukan
- * apa-apa (no-op) — TIDAK ada polling yang membebani. Realtime non-aktif
- * sampai env vars dikonfigurasi. Data tetap bisa dilihat, hanya tidak
- * auto-refresh.
- *
- * Konsumen (dashboard) invalidate query yang relevan saat event diterima.
+ * Callback menerima (event, payload) — consumer invalidate query cache.
  */
 export function useRealtime(
   events?: string[],
@@ -51,24 +61,48 @@ export function useRealtime(
       return
     }
 
-    const channel = supabase
-      .channel('app-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public' },
-        (payload: { table: string; eventType: string; new: unknown }) => {
-          const event = mapToEvent(payload.table, payload.eventType)
-          if (!events || events.length === 0 || events.includes(event)) {
-            onEventRef.current?.(event, payload.new)
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    try {
+      channel = supabase
+        .channel('app-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public' },
+          (payload: { table: string; eventType: string; new: unknown }) => {
+            try {
+              // Filter: hanya tabel yang relevan
+              if (!REALTIME_TABLES.includes(payload.table as typeof REALTIME_TABLES[number])) {
+                return
+              }
+              const event = mapToEvent(payload.table, payload.eventType)
+              if (!events || events.length === 0 || events.includes(event)) {
+                onEventRef.current?.(event, payload.new)
+              }
+            } catch (err) {
+              console.error('Realtime callback error:', err)
+            }
           }
-        }
-      )
-      .subscribe((status: string) => {
-        setIsConnected(status === 'SUBSCRIBED')
-      })
+        )
+        .subscribe((status: string) => {
+          try {
+            setIsConnected(status === 'SUBSCRIBED')
+          } catch {
+            // ignore state update errors
+          }
+        })
+    } catch (err) {
+      console.error('Realtime subscription error:', err)
+    }
 
     return () => {
-      supabase.removeChannel(channel)
+      try {
+        if (channel && supabase) {
+          supabase.removeChannel(channel)
+        }
+      } catch {
+        // ignore cleanup errors
+      }
     }
   }, [])
 
