@@ -584,3 +584,59 @@ Stage Summary:
 - Update otomatis: saat deploy baru, user auto-reload dapat versi baru
 - 3 app shortcut di Android (long-press icon): Dashboard, Tagihan, Pembayaran
 - Siap untuk Fase 5 (Push Notification) atau Fase 6 (Export PDF)
+
+---
+Task ID: pwa-mobile-crash-fix
+Agent: Orchestrator (main)
+Task: Fix PWA crash di mobile setelah install (desktop OK)
+
+Bug penyebab aplikasi keluar sendiri di mobile:
+
+1. respondWith(undefined) — BUG KRITIS
+   - caches.match() return undefined jika cache miss
+   - Jika offline page juga gagal precache → respondWith(undefined)
+   - SW crash → aplikasi keluar sendiri
+   - FIX: manual offlineResponse() selalu return Response valid
+
+2. Navigation detection sempit (hanya request.mode === 'navigate')
+   - Mobile browser kadang tidak detect sebagai navigate
+   - FIX: mode navigate OR destination document OR accept text/html
+
+3. Precache dynamic routes bisa fail
+   - cache.add('/app','/admin') reject jika non-200 (redirect/auth)
+   - Precache gagal → offline page tidak ter-cache → bug #1 kambuh
+   - FIX: hanya precache static files (offline.html, manifest, icons)
+
+4. Tidak ada navigation preload (lambat di mobile)
+   - FIX: enable navigationPreload di activate
+
+5. TypeScript syntax di .js file (function(): Response)
+   - Syntax error di service worker
+   - FIX: hapus type annotations
+
+6. controllerchange infinite loop (update → reload → update)
+   - FIX: guard flag 'reloading'
+
+7. Cache version v1 → v2 (force update SW lama yang buggy)
+
+8. Manifest: hapus id '/app' ambigu
+
+Safety SW baru:
+- SEMUA path return Response valid (tidak pernah undefined)
+- Error handling di semua catch
+- Cache hanya 200 + same-origin
+- allSettled precache (satu fail tidak gagalkan semua)
+- Manual offline response sebagai fallback terakhir
+
+Verification:
+- node -c sw.js: syntax valid ✓
+- /sw.js: 200 (8340 bytes) ✓
+- /offline.html: 200 ✓
+- /manifest.json: 200, valid JSON, no id field ✓
+- Lint: 0 errors
+- Push GitHub: commit 1d818f9
+
+Stage Summary:
+- PWA mobile crash FIXED. SW sekarang selalu return Response valid.
+- User perlu: update app (SW v2 otomatis replace v1), lalu uninstall + reinstall PWA jika perlu.
+- Desktop tetap jalan (sebelumnya OK karena cache sudah terisi).
