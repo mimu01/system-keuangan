@@ -5,8 +5,8 @@ import { useEffect } from 'react'
 /**
  * Registrasi Service Worker — minimal & aman.
  * - Hanya di production
- * - Tidak listen controllerchange (bisa cause infinite reload)
- * - Tidak detect update (biarkan SW activate sendiri via skipWaiting)
+ * - SW v6 adalah pure passthrough (no fetch handler, no caching)
+ * - Listen untuk SW_UPDATED message → reload halaman (dapat HTML fresh)
  */
 export function RegisterSW() {
   useEffect(() => {
@@ -25,6 +25,19 @@ export function RegisterSW() {
     }
 
     register()
+
+    // Listen untuk SW_UPDATED message dari SW baru
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SW_UPDATED') {
+        // SW baru aktif → reload untuk dapat HTML + chunk fresh
+        window.location.reload()
+      }
+    }
+    navigator.serviceWorker.addEventListener('message', handleMessage)
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleMessage)
+    }
   }, [])
 
   return null
