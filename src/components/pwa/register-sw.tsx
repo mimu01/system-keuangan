@@ -48,8 +48,11 @@ export function RegisterSW() {
     register()
 
     // Listen untuk pesan dari SW
+    let reloading = false
     const handleControllerChange = () => {
-      // Controller berubah (update aktif) — reload halaman
+      // Controller berubah (update aktif) — reload sekali saja (guard infinite loop)
+      if (reloading) return
+      reloading = true
       window.location.reload()
     }
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
