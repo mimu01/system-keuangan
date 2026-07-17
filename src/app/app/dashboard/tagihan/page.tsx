@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   CheckCircle2,
   ChevronDown,
@@ -117,14 +116,9 @@ export default function TagihanPage() {
           ))
         ) : data && data.length > 0 ? (
           data.map((t, i) => (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
+            <div key={t.id}>
               <TagihanCard tagihan={t} />
-            </motion.div>
+            </div>
           ))
         ) : (
           <Card className="p-8 text-center">
@@ -209,15 +203,8 @@ function TagihanCard({ tagihan }: { tagihan: TagihanItem }) {
               )}
             />
           </CollapsibleTrigger>
-          <AnimatePresence>
             {open && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
+              <div className="overflow-hidden">
                 <div className="mt-2 space-y-1.5">
                   {tagihan.pembayaran.map((p) => (
                     <div
@@ -244,9 +231,8 @@ function TagihanCard({ tagihan }: { tagihan: TagihanItem }) {
                     </div>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </Collapsible>
       )}
     </Card>

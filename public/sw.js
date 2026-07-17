@@ -1,56 +1,71 @@
 /**
  * Service Worker — SIK MI Miftahul Ulum 01
  *
- * VERSI PURE PASSTHROUGH — tidak intercept APA PUN.
+ * VERSI SELF-UNREGISTER — hapus SEMUA service worker dari browser.
  *
- * Penyebab ChunkLoadError sebelumnya:
- * - SW intercept navigasi → return cached/offline HTML
- * - Vercel deploy baru → chunk hash berubah (mis. __be98784e → __ce98784f)
- * - HTML lama (dari cache browser/SW) reference chunk lama yang sudah tidak ada
- * - Browser load chunk → 404 → ChunkLoadError → app blank/crash
+ * Alasan:
+ * - SW lama (v1-v5) masih terdaftar di HP user, intercept request
+ * - SW lama serve cached HTML → chunk 404 → ChunkLoadError → app crash
+ * - SW v6 (passthrough) butuh waktu untuk replace SW lama
+ * - Selama transisi, app tetap crash di HP lama
  *
- * Fix: SW TIDAK intercept fetch apa pun. Browser handle semua request
- * secara normal (seperti web biasa). SW hanya terdaftar untuk PWA installability.
- * Offline support: halaman offline.html bisa diakses manual jika diperlukan.
+ * Solusi: SW v7 langsung unregister SEMUA SW (termasuk dirinya sendiri).
+ * Aplikasi jalan sebagai website biasa (paling stabil, paling kompatibel).
+ * PWA install tetap bisa karena manifest.json cukup (SW tidak wajib untuk install).
  *
- * Keuntungan:
- * - Tidak ada stale cache (chunk hash selalu fresh dari server)
- * - Tidak ada ChunkLoadError (browser selalu fetch HTML+chunk terbaru)
- * - PWA tetap installable (manifest + SW registration cukup)
- * - Paling stabil untuk Vercel (auto-deploy sering ganti chunk hash)
+ * Setelah app stabil di semua device, bisa daftar ulang SW dengan caching yang proper.
  */
 
-const SW_VERSION = 'v6-passthrough'
+const SW_VERSION = 'v7-self-unregister'
 
-// INSTALL — langsung skipWaiting (tidak precache apa-apa)
+// INSTALL — langsung unregister semua SW
 self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting())
-})
-
-// ACTIVATE — hapus SEMUA cache lama + claim clients
-self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
-      .then(() => {
-        // Beritahu semua client untuk reload (dapat SW baru + HTML fresh)
-        return self.clients.matchAll({ type: 'window' })
-      })
-      .then((clients) => {
+    (async () => {
+      try {
+        // Unregister semua SW (termasuk dirinya sendiri)
+        const registrations = await self.registration.unregister()
+        console.log('SW unregistered:', registrations)
+
+        // Hapus SEMUA cache
+        const keys = await caches.keys()
+        await Promise.all(keys.map((key) => caches.delete(key)))
+
+        // Beritahu semua client untuk reload (tanpa SW)
+        const clients = await self.clients.matchAll({ type: 'window' })
         clients.forEach((client) => {
-          client.postMessage({ type: 'SW_UPDATED', version: SW_VERSION })
+          client.postMessage({ type: 'SW_UNREGISTERED' })
         })
-      })
-      .catch(() => {})
+      } catch (e) {
+        // ignore
+      }
+    })()
   )
 })
 
-// TIDAK ADA fetch handler — browser handle semua request normal
-// (ini kunci: tidak ada stale cache yang bisa cause ChunkLoadError)
+// ACTIVATE — unregister + claim
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      try {
+        await self.registration.unregister()
+        const keys = await caches.keys()
+        await Promise.all(keys.map((key) => caches.delete(key)))
+        await self.clients.claim()
+        const clients = await self.clients.matchAll({ type: 'window' })
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UNREGISTERED' })
+        })
+      } catch (e) {
+        // ignore
+      }
+    })()
+  )
+})
 
-// MESSAGE — handle dari client
+// TIDAK ADA fetch handler — tidak intercept apa pun
+
+// MESSAGE
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting()

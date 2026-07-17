@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { motion } from 'framer-motion'
 import { Eye, EyeOff, Loader2, Lock, Mail, GraduationCap, ShieldCheck, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -68,10 +67,7 @@ export function LoginForm() {
       </div>
 
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+        <div
           className="w-full max-w-sm"
         >
           {/* Logo & heading */}
@@ -173,7 +169,7 @@ export function LoginForm() {
           <p className="mt-6 text-center text-xs text-muted-foreground">
             © {new Date().getFullYear()} MI Miftahul Ulum 01
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import { GraduationCap, MapPin, User } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -63,11 +62,7 @@ export default function ProfilAnakPage() {
       {isLoading ? (
         <Skeleton className="h-44 rounded-3xl" />
       ) : siswa ? (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div>
           <Card className="overflow-hidden p-5">
             <div className="flex flex-col items-center text-center">
               {siswa.foto ? (
@@ -101,18 +96,14 @@ export default function ProfilAnakPage() {
               </div>
             </div>
           </Card>
-        </motion.div>
+        </div>
       ) : null}
 
       {/* Detail card */}
       {isLoading ? (
         <Skeleton className="h-72 rounded-2xl" />
       ) : siswa ? (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
+        <div>
           <Card className="divide-y divide-border p-0">
             <DetailRow label="NIS" value={siswa.nis} />
             <DetailRow label="NISN" value={siswa.nisn || '-'} />
@@ -144,16 +135,12 @@ export default function ProfilAnakPage() {
               />
             )}
           </Card>
-        </motion.div>
+        </div>
       ) : null}
 
       {/* Hubungan wali */}
       {siswa && data?.wali && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
+        <div>
           <Card className="flex items-center gap-3 p-4">
             <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <User className="size-5" />
@@ -166,7 +153,7 @@ export default function ProfilAnakPage() {
               </p>
             </div>
           </Card>
-        </motion.div>
+        </div>
       )}
     </div>
   )

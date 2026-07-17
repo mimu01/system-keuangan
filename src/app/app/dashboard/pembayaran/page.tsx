@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import {
   ExternalLink,
   ReceiptText,
@@ -59,11 +58,7 @@ export default function PembayaranPage() {
       </div>
 
       {/* Summary card */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      <div>
         {isLoading ? (
           <Skeleton className="h-32 rounded-3xl" />
         ) : (
@@ -88,7 +83,7 @@ export default function PembayaranPage() {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* List */}
       <div className="space-y-2.5">
@@ -98,14 +93,9 @@ export default function PembayaranPage() {
           ))
         ) : data && data.length > 0 ? (
           data.map((p, i) => (
-            <motion.div
-              key={p.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
+            <div key={p.id}>
               <PembayaranCard pembayaran={p} />
-            </motion.div>
+            </div>
           ))
         ) : (
           <Card className="p-8 text-center">

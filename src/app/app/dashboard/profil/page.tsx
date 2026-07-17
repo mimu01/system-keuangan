@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -149,11 +148,7 @@ export default function ProfilPage() {
       {isLoading ? (
         <Skeleton className="h-40 rounded-3xl" />
       ) : data ? (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div>
           <Card className="overflow-hidden p-5">
             <div className="flex flex-col items-center text-center">
               {data.foto ? (
@@ -177,18 +172,14 @@ export default function ProfilPage() {
               </span>
             </div>
           </Card>
-        </motion.div>
+        </div>
       ) : null}
 
       {/* Info card */}
       {isLoading ? (
         <Skeleton className="h-44 rounded-2xl" />
       ) : data ? (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
+        <div>
           <Card className="divide-y divide-border p-0">
             <InfoRow
               icon={<Phone className="size-4" />}
@@ -206,16 +197,12 @@ export default function ProfilPage() {
               value={data.alamat || '-'}
             />
           </Card>
-        </motion.div>
+        </div>
       ) : null}
 
       {/* Anak card */}
       {data?.siswa && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
+        <div>
           <Link href="/app/dashboard/profil-anak">
             <Card className="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-accent">
               <div className="flex items-center gap-3">
@@ -235,15 +222,11 @@ export default function ProfilPage() {
               <ArrowRight className="size-4 text-muted-foreground" />
             </Card>
           </Link>
-        </motion.div>
+        </div>
       )}
 
       {/* Ubah Kata Sandi */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
+      <div>
         <Card className="p-4">
           <div className="mb-3 flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -345,7 +328,7 @@ export default function ProfilPage() {
             </Button>
           </form>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Pasang Aplikasi (PWA Install) */}
       <InstallAppCard />

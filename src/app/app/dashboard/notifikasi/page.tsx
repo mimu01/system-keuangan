@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import {
   Bell,
   CalendarClock,
@@ -82,12 +81,7 @@ export default function NotifikasiPage() {
             const cfg = TIPE_CONFIG[n.tipe] ?? TIPE_CONFIG.PENGUMUMAN
             const Icon = cfg.icon
             return (
-              <motion.div
-                key={n.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-              >
+              <div key={n.id}>
                 <Card
                   className={cn(
                     'relative flex gap-3 overflow-hidden p-3.5',
@@ -120,7 +114,7 @@ export default function NotifikasiPage() {
                     <span className="absolute right-2 top-2 size-2 rounded-full bg-emerald-500" />
                   )}
                 </Card>
-              </motion.div>
+              </div>
             )
           })
         ) : (
