@@ -11,6 +11,8 @@ import { z } from 'zod'
 import {
   ArrowRight,
   Briefcase,
+  CheckCircle2,
+  Download,
   Eye,
   EyeOff,
   GraduationCap,
@@ -26,6 +28,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { usePWAInstall } from '@/hooks/use-pwa-install'
 
 interface WaliSiswa {
   id: string
@@ -344,6 +347,9 @@ export default function ProfilPage() {
         </Card>
       </motion.div>
 
+      {/* Pasang Aplikasi (PWA Install) */}
+      <InstallAppCard />
+
       {/* Logout */}
       <Button
         variant="destructive"
@@ -376,4 +382,69 @@ function InfoRow({
       </div>
     </div>
   )
+}
+
+function InstallAppCard() {
+  const { canInstall, isInstalled, promptInstall } = usePWAInstall()
+  const [installing, setInstalling] = useState(false)
+
+  const handleInstall = async () => {
+    setInstalling(true)
+    const accepted = await promptInstall()
+    setInstalling(false)
+    if (accepted) {
+      toast.success('Aplikasi berhasil dipasang!')
+    }
+  }
+
+  // Jika sudah terpasang, tampilkan status
+  if (isInstalled) {
+    return (
+      <Card className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="size-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Aplikasi Terpasang</p>
+            <p className="text-xs text-muted-foreground">
+              Akses dari layar utama HP Anda
+            </p>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  // Jika bisa dipasang (Android/Desktop Chrome), tampilkan tombol
+  if (canInstall) {
+    return (
+      <Card className="overflow-hidden p-0">
+        <div className="gradient-emerald p-4 text-white">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+              <Download className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Pasang Aplikasi</p>
+              <p className="mt-0.5 text-xs text-white/80">
+                Akses lebih cepat dari layar utama, bekerja offline
+              </p>
+              <Button
+                onClick={handleInstall}
+                disabled={installing}
+                size="sm"
+                className="mt-3 bg-white text-emerald-700 hover:bg-white/90"
+              >
+                {installing ? 'Memproses...' : 'Pasang Sekarang'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  // iOS / browser lain — tampilkan info instruksi (InstallPrompt banner akan muncul otomatis)
+  return null
 }

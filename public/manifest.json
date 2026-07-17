@@ -1,34 +1,75 @@
 {
-  "name": "SIK MI Miftahul Ulum 01",
+  "name": "Sistem Informasi Keuangan MI Miftahul Ulum 01",
   "short_name": "SIK MI MU 01",
-  "description": "Sistem Informasi Keuangan MI Miftahul Ulum 01 - Kelola keuangan sekolah dengan mudah dan transparan",
-  "start_url": "/",
+  "description": "Aplikasi keuangan sekolah MI Miftahul Ulum 01 — kelola tagihan, pembayaran, dan laporan keuangan dengan mudah, transparan, dan real-time.",
+  "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#0a2e1f",
   "theme_color": "#0d9488",
-  "categories": ["education", "finance"],
+  "categories": ["education", "finance", "productivity"],
   "lang": "id-ID",
   "dir": "ltr",
+  "id": "/app",
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-dashboard.png",
+      "sizes": "768x1344",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard Keuangan Sekolah"
     }
   ],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "url": "/?screen=dashboard",
-      "description": "Lihat ringkasan keuangan"
+      "name": "Dashboard Wali Murid",
+      "short_name": "Dashboard",
+      "description": "Lihat ringkasan tagihan dan pembayaran",
+      "url": "/app/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tagihan",
+      "short_name": "Tagihan",
+      "description": "Cek status tagihan sekolah",
+      "url": "/app/dashboard/tagihan",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Riwayat Pembayaran",
+      "short_name": "Bayar",
+      "description": "Lihat riwayat pembayaran",
+      "url": "/app/dashboard/pembayaran",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }

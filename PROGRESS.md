@@ -13,13 +13,13 @@
 | 🏠 Landing Page | **100%** | ✅ Selesai |
 | 🗄️ Database & API | **90%** | ✅ Stabil |
 | ⚡ Realtime | **80%** | ✅ Berfungsi (perlu anon key) |
-| 📱 PWA | **40%** | ⚠️ Dasar saja |
+| 📱 PWA | **95%** | ✅ Hampir selesai |
 | 🔔 Push Notification | **0%** | ⬜ Belum mulai |
 | 📄 Export PDF | **0%** | ⬜ Belum mulai (CSV ada) |
 | 🤖 Android TWA | **0%** | ⬜ Belum mulai |
 | 💳 Pembayaran Online | **0%** | ⬜ Belum mulai |
 
-**Overall: ~75% selesai** — Fondasi & fitur inti lengkap, siap dipakai. Tinggal enhancement PWA, notifikasi, dan TWA.
+**Overall: ~80% selesai** — Fondasi, fitur inti, & PWA lengkap. Tinggal push notification, export PDF, dan TWA.
 
 ---
 
@@ -159,22 +159,26 @@
 
 ## ⬜ BELUM DITERAPKAN (To-Do)
 
-### 📱 PWA Enhancement — 40% selesai
+### 📱 PWA Enhancement — 95% selesai
 
 **Sudah ada:**
-- [x] `manifest.json` (name, icons, theme color, display standalone)
-- [x] App icons (192px, 512px, 1024px)
-- [x] Apple touch icon
+- [x] `manifest.json` (name, icons, theme color, display standalone, shortcuts, screenshots)
+- [x] App icons (192px, 512px, 1024px) + maskable variants
+- [x] Apple touch icon + startup image
 - [x] Favicon (16px, 32px)
+- [x] **Service Worker** (`public/sw.js`) — offline cache + update detection
+- [x] **Cache strategy** — network-first navigasi, stale-while-revalidate assets
+- [x] **Offline fallback page** (`public/offline.html`) — halaman offline emerald themed
+- [x] **Install prompt** — banner Android/Desktop + modal guide iOS
+- [x] **Tombol "Pasang Aplikasi"** di halaman profil wali
+- [x] **App shortcuts** (3 shortcut: Dashboard, Tagihan, Pembayaran)
+- [x] **Splash screen** optimization (Apple PWA meta tags)
+- [x] **Update detection** — auto-reload saat versi baru tersedia
+- [x] **Dismiss mechanism** — install prompt bisa di-dismiss (7 hari)
 
 **Belum ada:**
-- [ ] **Service Worker** (`sw.js`) — untuk offline cache & background sync
-- [ ] **Install prompt** — handler `beforeinstallprompt` (tombol "Pasang Aplikasi")
-- [ ] **Offline fallback page** — halaman yang tampil saat tidak ada internet
-- [ ] **Cache strategy** — cache-first untuk assets, network-first untuk data
-- [ ] **Splash screen** optimization (sesuai manifest)
-- [ ] **App shortcut** (Android — shortcut "Dashboard" di long-press icon)
-- [ ] **next-pwa** package integration (atau Serwist untuk Next.js 16)
+- [ ] **Background sync** — sync data saat online kembali (mis. pembayaran tertunda)
+- [ ] **Push notification** (terpisah, ada di Fase 5)
 
 ### 🔔 Push Notification — 0%
 
@@ -317,7 +321,7 @@ Saat ini: 1 wali murid : 1 siswa. Target: 1 wali bisa punya beberapa anak.
 | Wali API | 9 | 9 | 100% |
 | Database | 12 tabel + 40 index | — | 90% |
 | Realtime | 6 event | 6 | 100%* |
-| PWA | 4 komponen | 11 | 36% |
+| PWA | 12 komponen | 14 | 86% |
 | Push Notif | 0 | 8 | 0% |
 | Export PDF | 0 | 4 | 0% |
 | Pembayaran Online | 0 | 8 | 0% |

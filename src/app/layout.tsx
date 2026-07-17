@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PWAProvider } from "@/components/pwa/pwa-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,17 +37,25 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "MI Miftahul Ulum 01" }],
   manifest: "/manifest.json",
+  applicationName: "SIK MI MU 01",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "SIK MI MU 01",
+  },
+  formatDetection: {
+    telephone: false,
   },
   icons: {
     icon: [
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+      { url: "/icons/icon-192.png", sizes: "192x192" },
+    ],
   },
   openGraph: {
     title: "SIK MI Miftahul Ulum 01",
@@ -66,6 +75,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -75,13 +85,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning>
+      <head>
+        {/* Apple PWA splash screen — resolusi iPhone umum */}
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/icon-512.png"
+        />
+        {/* Folos PWA */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="SIK MI MU 01" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${jakarta.variable} antialiased bg-background text-foreground font-sans`}
       >
         <ThemeProvider>
-          {children}
-          <Toaster />
-          <SonnerToaster position="top-right" richColors closeButton />
+          <PWAProvider>
+            {children}
+            <Toaster />
+            <SonnerToaster position="top-right" richColors closeButton />
+          </PWAProvider>
         </ThemeProvider>
       </body>
     </html>

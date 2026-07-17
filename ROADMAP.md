@@ -228,13 +228,15 @@ src/app/
 - [x] Hapus polling fallback (no-op jika env belum set)
 - [x] Mobile responsive (admin dual-view + wali mobile-first)
 
-### Fase 4 — PWA Enhancement ⬜ BERIKUTNYA
-- [ ] Service worker untuk offline cache
-- [ ] Install prompt (beforeinstallprompt)
-- [ ] Offline fallback page
-- [ ] Cache strategy (cache-first assets, network-first data)
-- [ ] Splash screen optimization
-- [ ] App shortcut (Android TWA)
+### Fase 4 — PWA Enhancement ✅ SELESAI
+- [x] Service worker untuk offline cache (`public/sw.js`)
+- [x] Install prompt (beforeinstallprompt) — banner Android/Desktop + guide iOS
+- [x] Offline fallback page (`public/offline.html`)
+- [x] Cache strategy (network-first navigasi, stale-while-revalidate assets)
+- [x] Splash screen optimization (Apple touch startup image, theme color)
+- [x] App shortcut (3 shortcut di manifest: Dashboard, Tagihan, Pembayaran)
+- [x] Tombol "Pasang Aplikasi" di halaman profil wali
+- [x] Update detection + auto-reload saat versi baru
 
 ### Fase 5 — Push Notification ⬜
 - [ ] Firebase Cloud Messaging (FCM) integration
