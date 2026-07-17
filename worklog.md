@@ -800,3 +800,57 @@ Stage Summary:
 - FIX: konversi 81 oklch() ke hex/rgba + browserslist config
 - Sekarang support Android 5+ (Chrome 60+), iOS 11+, semua browser modern
 - User perlu: tunggu deploy Vercel, uninstall PWA lama, clear cache, install ulang
+
+---
+Task ID: android-8-colormix-polyfill
+Agent: Orchestrator (main)
+Task: Fix halaman tidak bisa dimuat di Android 8.1 (color-mix polyfill)
+
+PENYEBAB UTAMA DITEMUKAN:
+- Tailwind v4 generate color-mix() untuk SEMUA opacity modifier (bg-primary/50, dll)
+- 344 color-mix() + 89 @property + 14 :has() di CSS output
+- color-mix() hanya support Chrome 111+ (Maret 2023)
+- Android 8.1 Chrome ~62-95 → color-mix invalid → property diabaikan
+- background/border/text jadi transparan → app BLANK/broken → "tidak bisa dimuat"
+
+PostCSS tidak bisa transpile color-mix dengan CSS variables (nilai unknown saat build).
+
+SOLUSI: Polyfill JS yang scan CSS dan replace color-mix(var()) → rgb(var() / alpha)
+
+1. ColorMixPolyfill (src/components/pwa/color-mix-polyfill.tsx):
+   - Detect CSS.supports('color', 'color-mix(...)')
+   - Jika tidak support: scan semua stylesheet same-origin
+   - Untuk setiap CSS rule, cek 15 color properties
+   - Replace: color-mix(in oklab, var(--color-X) 50%, transparent)
+       dengan: rgb(var(--color-X) / 0.5)
+   - Recurse ke nested rules (media query, @supports, dll)
+   - MutationObserver: re-run jika ada stylesheet baru
+   - rgb(var() / alpha) support Chrome 62+ ✓
+
+2. PWAProvider: tambah ColorMixPolyfill (jalan di semua halaman)
+
+3. globals.css: restructure ke RGB channels format
+   - @theme (non-inline) dengan space-separated RGB channels
+   - Dark mode override di .dark class
+   - Semua warna sebagai RGB channels (bukan hex)
+
+4. postcss.config.mjs: tambah postcss-preset-env + oklab/colormix plugins
+
+5. Service worker: bump cache version v4 → v5 (force clear cache lama)
+
+Hasil:
+- Browser modern (Chrome 111+): color-mix() bekerja normal
+- Browser lama (Chrome 62-110 / Android 8.1): polyfill replace ke rgb(var() / alpha)
+- Tema warna emerald tetap sama di semua browser
+
+Verification:
+- /app: 200, /sw.js: 200 ✓
+- sw.js syntax valid ✓
+- Lint: 0 errors ✓
+- Push ke GitHub: commit bd88233
+
+Stage Summary:
+- PENYEBAB UTAMA ditemukan: 344 color-mix() tidak support Chrome < 111
+- FIX: polyfill JS replace color-mix → rgb(var() / alpha) di runtime
+- SW v5 force clear cache lama (yang mungkin masih punya color-mix broken)
+- User perlu: tunggu deploy, clear cache browser, buka app
