@@ -203,16 +203,16 @@ export default function DashboardPage() {
                       <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.7 0.02 155 / 0.15)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(120, 130, 125, 0.15)" />
                   <XAxis
                     dataKey="bulan"
-                    stroke="oklch(0.5 0.02 155)"
+                    stroke="#5b6b62"
                     style={{ fontSize: 12 }}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
-                    stroke="oklch(0.5 0.02 155)"
+                    stroke="#5b6b62"
                     style={{ fontSize: 11 }}
                     tickLine={false}
                     axisLine={false}
@@ -221,8 +221,8 @@ export default function DashboardPage() {
                   <Tooltip
                     contentStyle={{
                       borderRadius: 12,
-                      border: "1px solid oklch(0.91 0.01 155)",
-                      background: "oklch(1 0 0 / 0.95)",
+                      border: "1px solid #d9e4de",
+                      background: "rgba(255, 255, 255, 0.95)",
                       backdropFilter: "blur(8px)",
                       boxShadow: "0 8px 32px -8px rgba(0,0,0,0.15)",
                     }}
@@ -277,8 +277,8 @@ export default function DashboardPage() {
                   <Tooltip
                     contentStyle={{
                       borderRadius: 12,
-                      border: "1px solid oklch(0.91 0.01 155)",
-                      background: "oklch(1 0 0 / 0.95)",
+                      border: "1px solid #d9e4de",
+                      background: "rgba(255, 255, 255, 0.95)",
                     }}
                   />
                   <Legend
