@@ -854,3 +854,54 @@ Stage Summary:
 - FIX: polyfill JS replace color-mix → rgb(var() / alpha) di runtime
 - SW v5 force clear cache lama (yang mungkin masih punya color-mix broken)
 - User perlu: tunggu deploy, clear cache browser, buka app
+
+---
+Task ID: app-crash-framer-motion
+Agent: Orchestrator (main)
+Task: Fix /app crash di HP lama (landing page aman, /app crash)
+
+ROOT CAUSE ditemukan setelah telusuri menyeluruh:
+- Landing page (/) AMAN karena tidak pakai Framer Motion berat
+- /app CRASH karena pakai:
+  1. AnimatePresence + motion.div key={pathname} di layout
+     - Menunggu exit animation saat navigasi
+     - Bisa hang/crash di browser lama (Android 8.1)
+  2. motion.div layoutId='activeNav' di bottom nav
+     - Shared layout animation berat (ResizeObserver + transform)
+     - Bisa freeze UI di device lemah
+  3. Banyak opacity modifier (bg-muted/30, bg-background/80, bg-emerald-500/10)
+     - Generate color-mix yang butuh polyfill
+     - Polyfill lambat di HP lama
+
+FIX (tanpa merusak struktur):
+
+1. app-shell.tsx — hapus Framer Motion sepenuhnya:
+   - Hapus AnimatePresence (bisa hang saat navigasi)
+   - Hapus motion.div layoutId (berat, pakai ResizeObserver)
+   - Ganti motion.div dengan div biasa
+   - Ganti bg-background/80 → bg-background (solid, no color-mix)
+   - Hapus backdrop-blur-md/lg (bisa lambat di GPU lama)
+   - Active nav: pakai span biasa dengan bg-emerald-500/10
+
+2. dashboard/page.tsx — hapus motion.div:
+   - Ganti semua motion.div dengan div biasa
+   - Hapus stagger animation
+   - Hapus import motion dari framer-motion
+
+Hasil:
+- /app sekarang setara dengan / (landing) dalam hal ringan
+- Tidak ada Framer Motion di wali app shell & dashboard
+- CSS lebih sedikit color-mix
+- Lebih responsif di HP lama (instant render)
+- Struktur tetap sama (layout, shell, nav, routing tidak berubah)
+
+Verification:
+- Build production sukses (semua route ter-compile) ✓
+- Lint: 0 errors ✓
+- Push GitHub: commit 80c802d
+
+Stage Summary:
+- ROOT CAUSE: Framer Motion (AnimatePresence + layoutId) berat untuk HP lama
+- FIX: hapus Framer Motion dari wali app, ganti dengan div biasa
+- Struktur tidak berubah (layout, shell, nav, routing sama)
+- /app sekarang se-ringan / (landing page)
