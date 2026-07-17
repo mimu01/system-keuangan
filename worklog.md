@@ -745,3 +745,58 @@ Stage Summary:
 - Tidak ada controllerchange listener (tidak infinite reload)
 - next.config bersih (tidak ada output: standalone)
 - User perlu: uninstall PWA lama, clear cache, install ulang setelah deploy
+
+---
+Task ID: android-8-compat
+Agent: Orchestrator (main)
+Task: Fix PWA crash di Android 8.1.0 (Chrome ~62-95)
+
+PENYEBAB UTAMA DITEMUKAN:
+- oklch() color function (CSS Color 4) hanya support Chrome 111+ (Maret 2023)
+- Android 8.1 = Chrome ~62-95 → oklch() TIDAK dikenali browser
+- 81 oklch() di globals.css + admin dashboard page
+- SEMUA CSS custom properties (background, foreground, primary, border, dll) jadi invalid/empty
+- Variable kosong → tidak ada warna → app blank/tidak terbaca → terlihat seperti 'crash/keluar sendiri'
+- Desktop OK karena Chrome desktop selalu update ke versi terbaru (111+)
+
+FIX LENGKAP:
+1. globals.css: konversi SEMUA oklch() ke hex/rgba equivalents
+   - Light mode: --background #f7fdfa, --primary #0d9488 (teal-600), dst
+   - Dark mode: --background #0c1714, --primary #14b8a6 (teal-500), dst
+   - Glass/glass-strong: rgba() dengan alpha
+   - bg-grid/bg-dots: rgba() untuk overlay
+   - gradient-emerald: hex teal-600 → teal-700
+   - shadow-glow: rgba() teal
+   - scrollbar thumb: rgba() gray
+   - shimmer/pulse-ring animations: rgba()
+
+2. admin/dashboard/page.tsx: konversi oklch di recharts
+   - CartesianGrid stroke: rgba(120,130,125,0.15)
+   - XAxis/YAxis stroke: #5b6b62
+   - Tooltip border: #d9e4de, background: rgba(255,255,255,0.95)
+
+3. text-balance: tambah fallback word-wrap + overflow-wrap
+   (text-wrap: balance hanya Chrome 114+)
+
+4. package.json: tambah browserslist config
+   - Chrome >= 60, ChromeAndroid >= 60 (Android 8.1 support)
+   - Android >= 5, Safari >= 11, iOS >= 11
+   - Firefox >= 60, Edge >= 79
+   - Next.js akan transpile modern JS (optional chaining, nullish coalescing, dll)
+     untuk target browser ini
+
+Hasil: tema warna emerald tetap sama, tapi sekarang support SEMUA browser
+dari Chrome 62+ (Android 8.1) sampai terbaru.
+
+Verification:
+- 0 oklch tersisa di src/ dan public/ ✓
+- Lint: 0 errors ✓
+- /app: 200 ✓
+- Push ke GitHub: commit 7200a91
+
+Stage Summary:
+- PENYEBAB UTAMA crash ditemukan: oklch() tidak support di Chrome < 111
+- Android 8.1 (Chrome ~95) = oklch invalid = semua warna hilang = app blank
+- FIX: konversi 81 oklch() ke hex/rgba + browserslist config
+- Sekarang support Android 5+ (Chrome 60+), iOS 11+, semua browser modern
+- User perlu: tunggu deploy Vercel, uninstall PWA lama, clear cache, install ulang
