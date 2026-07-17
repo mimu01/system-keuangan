@@ -8,32 +8,35 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 /**
- * Hook untuk trigger install PWA secara manual (mis. dari tombol "Pasang Aplikasi").
- * - `canInstall`: true jika browser support beforeinstallprompt (Android/Desktop Chrome)
- * - `isInstalled`: true jika app sudah berjalan dalam standalone mode
- * - `promptInstall()`: trigger dialog install
- *
- * iOS tidak support beforeinstallprompt — untuk iOS, gunakan komponen
- * InstallPrompt yang menampilkan instruksi manual.
+ * Hook untuk trigger install PWA secara manual.
+ * Defensive: semua window access di-guard dengan try/catch.
  */
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
-    // Cek apakah sudah terpasang (standalone mode)
-    const checkInstalled = () => {
+    if (typeof window === 'undefined') return
+
+    // Cek standalone mode (defer setState agar tidak trigger cascading render)
+    try {
       const standalone =
         window.matchMedia('(display-mode: standalone)').matches ||
         // @ts-expect-error iOS Safari
         window.navigator.standalone === true
-      setIsInstalled(standalone)
+      // Defer ke microtask agar tidak synchronous setState in effect
+      Promise.resolve().then(() => setIsInstalled(standalone))
+    } catch {
+      // ignore
     }
-    checkInstalled()
 
     const handler = (e: Event) => {
-      e.preventDefault()
-      setDeferredPrompt(e as BeforeInstallPromptEvent)
+      try {
+        e.preventDefault()
+        setDeferredPrompt(e as BeforeInstallPromptEvent)
+      } catch {
+        // ignore
+      }
     }
 
     window.addEventListener('beforeinstallprompt', handler)
@@ -49,10 +52,14 @@ export function usePWAInstall() {
 
   const promptInstall = useCallback(async () => {
     if (!deferredPrompt) return false
-    await deferredPrompt.prompt()
-    const choice = await deferredPrompt.userChoice
-    setDeferredPrompt(null)
-    return choice.outcome === 'accepted'
+    try {
+      await deferredPrompt.prompt()
+      const choice = await deferredPrompt.userChoice
+      setDeferredPrompt(null)
+      return choice.outcome === 'accepted'
+    } catch {
+      return false
+    }
   }, [deferredPrompt])
 
   return {
