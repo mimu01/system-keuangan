@@ -691,3 +691,57 @@ Stage Summary:
 - Realtime difilter + guarded (tidak infinite loop)
 - SW simplified (hapus navigation preload yang兼容 rendah)
 - User perlu: uninstall PWA lama, clear cache, install ulang setelah deploy
+
+---
+Task ID: pwa-crash-fix-v3-simplify
+Agent: Orchestrator (main)
+Task: Simplify PWA maksimal untuk stabilitas mobile (crash masih terjadi setelah v2)
+
+Strategi baru: MINIMALIS & DEFENSIVE. Hapus semua yang bisa cause crash.
+
+6 perubahan:
+
+1. next.config: HAPUS output: 'standalone'
+   - Tidak perlu di Vercel, bisa cause mobile PWA rendering issue
+   - Vercel sudah handle Next.js deployment optimal
+
+2. Service Worker — simplify drastic (public/sw.js):
+   - HAPUS precache (bisa fail cause install error)
+   - HAPUS runtime caching (bisa cause stale/crash)
+   - HAPUS navigation preload (compatibility issue)
+   - HANYA intercept navigasi saat OFFLINE → return offline page
+   - Semua request lain (assets, API) dibiarkan browser handle
+   - Cache version v3 → v4 (force update SW lama)
+
+3. InstallPrompt — hapus Framer Motion:
+   - Hapus AnimatePresence (bisa cause layout crash di mobile)
+   - Hapus motion.div (ganti div biasa)
+   - Defensive: semua window access di try/catch
+   - Return null lebih awal jika PWA standalone mode
+
+4. RegisterSW — simplify maksimal:
+   - HAPUS controllerchange listener (cause infinite reload)
+   - HAPUS update detection (biarkan SW skipWaiting sendiri)
+   - Hanya register SW, tidak ada logic lain
+
+5. usePWAInstall hook — defensive:
+   - Defer setIsInstalled via Promise.resolve()
+   - Semua window access di try/catch
+
+6. .gitignore: tambah upload/ folder
+
+Filosofi: PWA yang stabil > PWA yang kaya fitur tapi crash.
+Setelah stabil, bisa tambah caching secara bertahap.
+
+Verification:
+- sw.js syntax valid ✓
+- /sw.js: 200, /app: 200 ✓
+- Lint: 0 errors
+- Push ke GitHub: commit e61564a
+
+Stage Summary:
+- PWA sekarang sangat minimal: SW hanya handle offline page, tidak ada caching kompleks
+- Tidak ada Framer Motion di InstallPrompt (kurangi risk crash)
+- Tidak ada controllerchange listener (tidak infinite reload)
+- next.config bersih (tidak ada output: standalone)
+- User perlu: uninstall PWA lama, clear cache, install ulang setelah deploy
